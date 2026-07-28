@@ -1,0 +1,13 @@
+services:
+  cotopaxi-trek-db:
+    container_name: cotopaxi_trek_db
+    image: postgres:14.3
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: user@pass
+      POSTGRES_DB: cotopaxi_trek_db
+    volumes:
+      - ./postgres:/var/lib/postgresql/data

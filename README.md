@@ -78,6 +78,14 @@ pnpm add -D prisma
 
 Después de instalarlo hay que inicializar el schema (si no existe todavía) y generar el cliente — ver la sección [Base de datos (Prisma)](#base-de-datos-prisma) más abajo para el detalle de `migrate dev` vs `generate`.
 
+### Prisma driver adapter para Postgres
+
+```bash
+pnpm add @prisma/adapter-pg pg
+```
+
+Se usa en `src/databases/databases.service.ts` para conectar Prisma a Postgres a través de un [driver adapter](https://www.prisma.io/docs/orm/overview/databases/database-drivers) (`PrismaPg`) en vez de la conexión nativa del engine. Por eso el `datasource db` en `schema.prisma` no define `url`: la connection string se le pasa al adapter en runtime, usando `envs.databaseUrl`.
+
 ## Compile and run the project
 
 ```bash

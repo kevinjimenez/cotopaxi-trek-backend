@@ -5,6 +5,7 @@ import { join } from 'path';
 import { CommonModule } from './common/common.module';
 import { DatabasesModule } from './databases/databases.module';
 import { HealthModule } from './health/health.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gpl'),
       sortSchema: true,
     }),
+    ConfigModule.forRoot(),
     HealthModule,
     CommonModule,
     DatabasesModule,

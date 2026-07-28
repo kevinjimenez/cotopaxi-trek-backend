@@ -105,6 +105,20 @@ Al levantar el proyecto (por ejemplo con `pnpm run start:dev`), Nest genera el s
 http://localhost:3000/graphql
 ```
 
+### Troubleshooting: el puerto 3000 ya está en uso
+
+Si al levantar el proyecto ves un error de `EADDRINUSE` (o simplemente no arranca porque el puerto ya está ocupado, por ejemplo de una corrida anterior que quedó colgada), revisa qué proceso lo está usando:
+
+```bash
+lsof -nP -iTCP:3000 -sTCP:LISTEN
+```
+
+Esto te da el `PID` del proceso. Para liberarlo:
+
+```bash
+kill <PID>
+```
+
 ## Health check (GraphQL)
 
 El módulo `src/health` expone una query para verificar que la API está arriba y respondiendo.
@@ -183,6 +197,28 @@ Casos típicos donde solo necesitas `generate`, sin `migrate`:
 
 > Si cambiaste `schema.prisma` → `migrate dev` (esto ya regenera el cliente por ti).
 > Si el schema no cambió pero el cliente generado no existe o está desactualizado → `generate` a secas.
+
+### Troubleshooting: `ReferenceError: exports is not defined in ES module scope`
+
+Si al correr `pnpm run start:prod` (o `node dist/...`) ves este error apuntando a un archivo dentro de `dist/.../generated/prisma/client.js`, es porque el generador `prisma-client` de Prisma **genera código ESM nativo por defecto** (usa `import.meta.url`). Este proyecto es CommonJS (no tiene `"type": "module"` en `package.json`), así que `tsc` transpila el resto del archivo a CJS (`exports.x = ...`) pero **no puede transformar `import.meta.url`** — queda un archivo híbrido que Node no puede ejecutar ni como CJS ni como ESM.
+
+**Solución:** forzar al generador a emitir CommonJS agregando `moduleFormat = "cjs"` en el bloque `generator client` de `schema.prisma`:
+
+```prisma
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+```
+
+Después, regenerar el cliente:
+
+```bash
+pnpm prisma generate
+```
+
+Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
 ## Run tests
 

@@ -25,6 +25,16 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Stack
+
+- **[NestJS](https://nestjs.com/)** (`@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`) — framework principal, sobre Express.
+- **GraphQL** con enfoque **code-first**: el schema (`src/schema.gpl`) se autogenera a partir de los decoradores TypeScript (`@ObjectType`, `@Field`, `@Resolver`, `@Query`), no se escribe a mano.
+  - `@nestjs/graphql` — integración de GraphQL con Nest.
+  - `@nestjs/apollo` + `@apollo/server` + `@as-integrations/express5` — driver de Apollo Server sobre Express.
+  - `graphql` — librería base del lenguaje de queries.
+- **TypeScript** + **pnpm** como gestor de paquetes.
+- **Jest** para tests unitarios y e2e.
+
 ## Project setup
 
 ```bash
@@ -42,6 +52,50 @@ $ pnpm run start:dev
 
 # production mode
 $ pnpm run start:prod
+```
+
+Al levantar el proyecto (por ejemplo con `pnpm run start:dev`), Nest genera el schema GraphQL automáticamente en `src/schema.gpl` y expone un único endpoint en:
+
+```
+http://localhost:3000/graphql
+```
+
+## Health check (GraphQL)
+
+El módulo `src/health` expone una query para verificar que la API está arriba y respondiendo.
+
+- **Modelo** (`src/health/model/health.model.ts`): define el tipo `Health` con los campos `environment`, `message` y `port`.
+- **Resolver** (`src/health/health.resolver.ts`): expone la query `checkHealth`, que devuelve un `Health`.
+- **Service** (`src/health/health.service.ts`): contiene la lógica que arma la respuesta.
+
+### Cómo validar / probar la query
+
+**Opción 1 — Apollo Sandbox (navegador):**
+
+Con el servidor corriendo, abre `http://localhost:3000/graphql` y ejecuta:
+
+```graphql
+query {
+  checkHealth {
+    environment
+    message
+    port
+  }
+}
+```
+
+**Opción 2 — curl (terminal):**
+
+```bash
+curl -s -X POST http://localhost:3000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"query { checkHealth { environment message port } }"}'
+```
+
+Respuesta esperada:
+
+```json
+{"data":{"checkHealth":{"environment":"...","message":"api paradeisos is up and running","port":0}}}
 ```
 
 ## Run tests

@@ -1,30 +1,37 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { PrismaClient } from 'src/databases/generated/prisma/client';
-
-type PrismaTransaction = Omit<
-  PrismaClient,
-  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
->;
+import {
+  ModelDelegate,
+  ModelName,
+  PrismaTransaction,
+} from 'src/databases/prisma.types';
 
 export abstract class BaseRepository<T> {
   constructor(
     protected readonly db: PrismaTransaction,
-    private readonly modelName: string,
+    private readonly modelName: ModelName,
   ) {}
 
   findAll(tx?: PrismaTransaction): Promise<T[]> {
     const database = tx ?? this.db;
+    const model = database[this.modelName] as ModelDelegate;
 
-    return database[this.modelName].findMany();
+    return model.findMany() as Promise<T[]>;
   }
 
-  async create(data: unknown, tx?: PrismaTransaction): Promise<T> {
+  findById(id: string | number, tx?: PrismaTransaction): Promise<T | null> {
     const database = tx ?? this.db;
+    const model = database[this.modelName] as ModelDelegate;
+
+    return model.findUnique({ where: { id } }) as Promise<T>;
+  }
+
+  create(data: unknown, tx?: PrismaTransaction): Promise<T> {
+    const database = tx ?? this.db;
+    const model = database[this.modelName] as ModelDelegate;
+
+    return model.create({ data }) as Promise<T>;
 
     // try {
-    return await database[this.modelName].create({ data });
+    // return await database[this.modelName].create({ data });
     // } catch (error) {
     //   return error;
     // }

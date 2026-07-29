@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
+import { UserCredentialsRepository } from './user-credentials.repository';
 import { UserCredentialsService } from './user-credentials.service';
-import { UserCredentialsResolver } from './user-credentials.resolver';
 
 @Module({
-  providers: [UserCredentialsResolver, UserCredentialsService],
+  providers: [UserCredentialsService, UserCredentialsRepository],
+  exports: [UserCredentialsService],
 })
 export class UserCredentialsModule {}

@@ -1,26 +1,42 @@
 import { Injectable } from '@nestjs/common';
+import { DatabasesService } from 'src/databases/databases.service';
+import { PrismaTransaction } from 'src/databases/prisma.types';
+import { CreateUserCredentialInput } from 'src/user-credentials/dto/create-user-credential.input';
+import { UserCredentialsService } from 'src/user-credentials/user-credentials.service';
 import { CreateUserInput } from './dto/create-user.input';
-import { UserRepository } from './users.repository';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly databasesService: DatabasesService,
+    private readonly usersRepository: UsersRepository,
+    private readonly userCredentialsService: UserCredentialsService,
+  ) {}
 
-  // create(createUserInput: CreateUserInput) {
-  //   return 'This action adds a new user';
-  // }
-
-  findAll() {
-    return this.userRepository.findAll();
+  findAll(tx?: PrismaTransaction) {
+    return this.usersRepository.findAll(tx);
   }
 
   create(payload: CreateUserInput) {
-    return this.userRepository.create(payload);
+    const { password, ...user } = payload;
+
+    return this.databasesService.$transaction(async (tx) => {
+      const createdUser = await this.usersRepository.create(user, tx);
+
+      const credential: CreateUserCredentialInput = {
+        user_id: createdUser.id,
+        password: password,
+      };
+      await this.userCredentialsService.create(credential, tx);
+
+      return createdUser;
+    });
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
+  findOne(id: string) {
+    return this.usersRepository.findOne(id);
+  }
 
   // update(id: number, updateUserInput: UpdateUserInput) {
   //   return `This action updates a #${id} user`;

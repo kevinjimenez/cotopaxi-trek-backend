@@ -1,10 +1,15 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { BaseModel } from 'src/common/base/base.model';
 import { RoleType } from 'src/databases/generated/prisma/enums';
+import { UserCredential } from 'src/user-credentials/models/user-credential.model';
 
 registerEnumType(RoleType, { name: 'RoleType' });
 
 @ObjectType()
-export class User {
+export class User extends BaseModel {
+  @Field()
+  id: string;
+
   @Field()
   name: string;
 
@@ -25,4 +30,7 @@ export class User {
 
   @Field()
   status: boolean;
+
+  @Field(() => UserCredential, { nullable: true })
+  credentials?: UserCredential;
 }

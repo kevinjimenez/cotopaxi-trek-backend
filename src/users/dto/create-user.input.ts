@@ -20,6 +20,10 @@ export class CreateUserInput {
   email: string;
 
   @Field()
+  @IsString()
+  password: string;
+
+  @Field()
   @IsOptional()
   @IsString()
   phone?: string;

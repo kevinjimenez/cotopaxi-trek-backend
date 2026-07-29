@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CreateUserInput } from './dto/create-user.input';
 import { UserRepository } from './user.repository';
 
 @Injectable()
@@ -11,6 +12,10 @@ export class UsersService {
 
   findAll() {
     return this.userRepository.findAll();
+  }
+
+  create(payload: CreateUserInput) {
+    return this.userRepository.create(payload);
   }
 
   // findOne(id: number) {

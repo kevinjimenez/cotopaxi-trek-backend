@@ -19,4 +19,14 @@ export abstract class BaseRepository<T> {
 
     return database[this.modelName].findMany();
   }
+
+  async create(data: unknown, tx?: PrismaTransaction): Promise<T> {
+    const database = tx ?? this.db;
+
+    // try {
+    return await database[this.modelName].create({ data });
+    // } catch (error) {
+    //   return error;
+    // }
+  }
 }

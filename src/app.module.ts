@@ -2,10 +2,10 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CommonModule } from './common/common.module';
+import { DatabasesModule } from './databases/databases.module';
 import { HealthModule } from './health/health.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -14,10 +14,10 @@ import { HealthModule } from './health/health.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gpl'),
       sortSchema: true,
     }),
+    ConfigModule.forRoot(),
     HealthModule,
     CommonModule,
+    DatabasesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

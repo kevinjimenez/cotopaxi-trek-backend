@@ -32,6 +32,7 @@
   - `@nestjs/graphql` — integración de GraphQL con Nest.
   - `@nestjs/apollo` + `@apollo/server` + `@as-integrations/express5` — driver de Apollo Server sobre Express.
   - `graphql` — librería base del lenguaje de queries.
+- **[Prisma](https://www.prisma.io/)** (`prisma` + `@prisma/client`) — ORM y cliente de base de datos, schema en `src/databases/prisma/schema.prisma`.
 - **TypeScript** + **pnpm** como gestor de paquetes.
 - **Jest** para tests unitarios y e2e.
 
@@ -40,6 +41,50 @@
 ```bash
 $ pnpm install
 ```
+
+Esto instala todo lo que ya está declarado en `package.json`. Las secciones de abajo documentan **cómo se agregó cada dependencia**, por si necesitas replicarlo en otro proyecto o entender de dónde salió cada paquete.
+
+### GraphQL + Apollo
+
+```bash
+pnpm add @nestjs/graphql @nestjs/apollo @apollo/server @as-integrations/express5 graphql
+```
+
+### Validación de variables de entorno (Joi + dotenv)
+
+```bash
+pnpm add joi dotenv
+```
+
+### Compresión de respuestas HTTP
+
+```bash
+pnpm add compression
+pnpm add -D @types/compression
+```
+
+### Validación de DTOs / inputs (ValidationPipe global)
+
+```bash
+pnpm add class-validator class-transformer
+```
+
+### Prisma (ORM)
+
+```bash
+pnpm add @prisma/client
+pnpm add -D prisma
+```
+
+Después de instalarlo hay que inicializar el schema (si no existe todavía) y generar el cliente — ver la sección [Base de datos (Prisma)](#base-de-datos-prisma) más abajo para el detalle de `migrate dev` vs `generate`.
+
+### Prisma driver adapter para Postgres
+
+```bash
+pnpm add @prisma/adapter-pg pg
+```
+
+Se usa en `src/databases/databases.service.ts` para conectar Prisma a Postgres a través de un [driver adapter](https://www.prisma.io/docs/orm/overview/databases/database-drivers) (`PrismaPg`) en vez de la conexión nativa del engine. Por eso el `datasource db` en `schema.prisma` no define `url`: la connection string se le pasa al adapter en runtime, usando `envs.databaseUrl`.
 
 ## Compile and run the project
 
@@ -58,6 +103,20 @@ Al levantar el proyecto (por ejemplo con `pnpm run start:dev`), Nest genera el s
 
 ```
 http://localhost:3000/graphql
+```
+
+### Troubleshooting: el puerto 3000 ya está en uso
+
+Si al levantar el proyecto ves un error de `EADDRINUSE` (o simplemente no arranca porque el puerto ya está ocupado, por ejemplo de una corrida anterior que quedó colgada), revisa qué proceso lo está usando:
+
+```bash
+lsof -nP -iTCP:3000 -sTCP:LISTEN
+```
+
+Esto te da el `PID` del proceso. Para liberarlo:
+
+```bash
+kill <PID>
 ```
 
 ## Health check (GraphQL)
@@ -97,6 +156,69 @@ Respuesta esperada:
 ```json
 {"data":{"checkHealth":{"environment":"...","message":"api paradeisos is up and running","port":0}}}
 ```
+
+## Base de datos (Prisma)
+
+El schema vive en `src/databases/prisma/schema.prisma` y la conexión se configura con la variable `DATABASE_URL` en tu `.env` (ver `.env.example`).
+
+Prisma tiene dos comandos que se confunden fácil porque casi siempre se usan juntos, pero resuelven cosas distintas:
+
+### `prisma migrate dev` — cuando cambias el schema
+
+```bash
+pnpm prisma migrate dev --name nombre_del_cambio
+```
+
+Úsalo cuando **modificas `schema.prisma`** (agregas/quitas un modelo, un campo, una relación, un índice, etc.) y quieres que ese cambio se refleje en la base de datos real. Este comando:
+
+1. Compara tu schema contra el estado actual de la base.
+2. Genera un archivo SQL nuevo en `src/databases/prisma/migrations/` con los `ALTER TABLE`/`CREATE TABLE` necesarios.
+3. Aplica esa migración a tu base de datos local.
+4. Regenera el Prisma Client automáticamente al final (o sea, ya incluye el `generate`).
+
+En pocas palabras: **cambia la estructura de la base de datos**, y deja un historial (los archivos de migración) que se versiona en git para que el resto del equipo y producción puedan aplicar el mismo cambio.
+
+### `prisma generate` — cuando solo necesitas el cliente actualizado
+
+```bash
+pnpm prisma generate
+```
+
+Úsalo cuando **no tocaste la base de datos**, pero necesitas que el Prisma Client (el objeto `PrismaClient` que usas en tu código, con autocompletado tipado) se actualice. Este comando:
+
+- Lee `schema.prisma` y regenera el código TypeScript del cliente en la carpeta configurada como `output` (`../generated/prisma`, ignorada en git).
+- **No toca la base de datos** — no crea tablas ni corre SQL.
+
+Casos típicos donde solo necesitas `generate`, sin `migrate`:
+- Acabas de clonar el repo o hacer `pull` de cambios de otra persona que ya incluían migraciones nuevas — corres `generate` para que tu editor/TypeScript conozca los tipos actualizados (o directamente `pnpm install`, que lo dispara automáticamente vía el hook `postinstall` de Prisma).
+- Borraste la carpeta `node_modules`/`generated` por error y necesitas reconstruir el cliente sin cambiar nada del schema.
+
+### Regla práctica
+
+> Si cambiaste `schema.prisma` → `migrate dev` (esto ya regenera el cliente por ti).
+> Si el schema no cambió pero el cliente generado no existe o está desactualizado → `generate` a secas.
+
+### Troubleshooting: `ReferenceError: exports is not defined in ES module scope`
+
+Si al correr `pnpm run start:prod` (o `node dist/...`) ves este error apuntando a un archivo dentro de `dist/.../generated/prisma/client.js`, es porque el generador `prisma-client` de Prisma **genera código ESM nativo por defecto** (usa `import.meta.url`). Este proyecto es CommonJS (no tiene `"type": "module"` en `package.json`), así que `tsc` transpila el resto del archivo a CJS (`exports.x = ...`) pero **no puede transformar `import.meta.url`** — queda un archivo híbrido que Node no puede ejecutar ni como CJS ni como ESM.
+
+**Solución:** forzar al generador a emitir CommonJS agregando `moduleFormat = "cjs"` en el bloque `generator client` de `schema.prisma`:
+
+```prisma
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+```
+
+Después, regenerar el cliente:
+
+```bash
+pnpm prisma generate
+```
+
+Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
 ## Run tests
 

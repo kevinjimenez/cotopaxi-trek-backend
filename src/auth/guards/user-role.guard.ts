@@ -7,14 +7,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import type { Request } from 'express';
 import { Observable } from 'rxjs';
 import { META_ROLES } from '../decorators/role-protected.decorator';
-import { AuthenticatedUser } from '../types/authenticated-user.type';
-
-interface RequestWithUser extends Request {
-  user: AuthenticatedUser;
-}
+import type { RequestWithUser } from '../interfaces/request-with-user.interface';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {

@@ -8,7 +8,6 @@ import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { DatabasesModule } from './databases/databases.module';
 import { HealthModule } from './health/health.module';
-import { UserCredentialsModule } from './user-credentials/user-credentials.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -24,7 +23,6 @@ import { UsersModule } from './users/users.module';
     CommonModule,
     DatabasesModule,
     UsersModule,
-    UserCredentialsModule,
     AuthModule,
   ],
 })

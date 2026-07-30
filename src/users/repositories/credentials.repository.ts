@@ -4,7 +4,7 @@ import { Prisma } from 'src/databases/generated/prisma/client';
 import { PrismaTransaction } from 'src/databases/prisma.types';
 
 @Injectable()
-export class UserCredentialsRepository {
+export class CredentialsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
   create(

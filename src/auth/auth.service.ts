@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { BcryptAdapter } from 'src/common/adapters/bcrypt.adapter';
 import { RoleType } from 'src/databases/generated/prisma/enums';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/users/services/users.service';
 import { LoginInput } from './dto/login.input';
 
 export interface JwtPayloadSign {

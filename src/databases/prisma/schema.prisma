@@ -13,6 +13,45 @@ datasource db {
   provider = "postgresql"
 }
 
+model companies {
+  id         String   @id @default(uuid(7))
+  name       String   @db.VarChar(150)
+  slug       String   @db.VarChar(80)
+  status     Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  // users      users[]
+  // seasons    seasons[]
+}
+
+model seasons {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  year       Int      @db.Integer()
+  is_current Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  // companies   companies? @relation(fields: [companiesId], references: [id])
+  // companiesId String?
+}
+
+model season_mountains {
+  id         Int      @id @default(autoincrement())
+  sort_order Int      @db.Integer()
+  price      Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model mountains {
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(100)
+  altitude_meters Int      @db.Integer()
+  status          Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
 // Enum: valores fijos permitidos para el campo `role` de `users`.
 enum RoleType {
   customer
@@ -21,25 +60,39 @@ enum RoleType {
 }
 
 model users {
-  id          String            @id @default(uuid(7)) // PK, UUID v7 (ordenable por tiempo) generado por la base
+  id          String            @id @default(uuid(7))
   name        String            @db.VarChar(150)
   lastname    String            @db.VarChar(150)
-  username    String            @unique @db.VarChar(50) // @unique crea un índice único, no permite duplicados
+  username    String            @unique @db.VarChar(50)
   email       String            @unique @db.VarChar(150)
-  phone       String?           @db.VarChar(20) // el `?` lo hace opcional/nullable
+  phone       String?           @db.VarChar(20)
   role        RoleType          @default(admin)
   status      Boolean           @default(true)
-  created_at  DateTime          @default(now()) // se setea solo al crear el registro
-  updated_at  DateTime          @updatedAt // Prisma la actualiza sola en cada update
+  created_at  DateTime          @default(now())
+  updated_at  DateTime          @updatedAt
   credentials user_credentials? // lado "uno" de la relación 1-a-1, opcional (no genera columna en la tabla)
+  // company_id  String?
+  // company     companies?        @relation(fields: [company_id], references: [id])
 }
 
 // Tabla separada para credenciales, en relación 1-a-1 con `users`.
 model user_credentials {
-  id         Int      @id @default(autoincrement()) // PK numérica autoincremental (SERIAL en Postgres)
+  id         Int      @id @default(autoincrement())
   user_id    String   @unique // FK hacia users.id; @unique es lo que fuerza que sea 1-a-1 (si no, sería 1-a-muchos)
   user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade) // si se borra el user, se borran sus credenciales
-  password   String   @db.VarChar(255) // guardar siempre el hash, nunca el password en texto plano
+  password   String   @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+}
+
+model user_seasons {
+  id         Int      @id @default(autoincrement())
+  status     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model bookings {
+  id     String  @id @default(uuid(7))
+  status Boolean @default(true)
 }

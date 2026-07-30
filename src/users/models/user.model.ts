@@ -16,14 +16,14 @@ export class User extends BaseModel {
   @Field()
   lastname: string;
 
-  @Field()
-  username: string;
-
-  @Field()
-  email: string;
+  @Field({ nullable: true })
+  username?: string;
 
   @Field({ nullable: true })
-  phone: string;
+  email?: string;
+
+  @Field({ nullable: true })
+  phone?: string;
 
   @Field(() => RoleType)
   role: RoleType;

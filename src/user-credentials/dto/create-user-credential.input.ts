@@ -5,7 +5,7 @@ import { IsString } from 'class-validator';
 export class CreateUserCredentialInput {
   @Field()
   @IsString()
-  user_id: string;
+  userId: string;
 
   @Field()
   @IsString()

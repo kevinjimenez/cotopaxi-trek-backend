@@ -105,6 +105,32 @@ Al levantar el proyecto (por ejemplo con `pnpm run start:dev`), Nest genera el s
 http://localhost:3000/graphql
 ```
 
+### `@Field()` inferido vs `@Field(() => Tipo)` explícito
+
+En el enfoque code-first, `@Field()` sin argumentos usa `reflect-metadata` para adivinar el tipo GraphQL a partir del tipo de TypeScript. Eso funciona bien para `string`, `boolean` y clases simples, pero **hay que ser explícito con `@Field(() => Tipo)`** en estos casos:
+
+- **Enums** — un enum de Prisma (`RoleType`) es un `const` object + union type; en runtime no queda tipo que `reflect-metadata` pueda leer.
+  ```ts
+  @Field(() => RoleType)
+  role?: RoleType;
+  ```
+- **Arrays** — TypeScript emite `Array` como metadata, sin el tipo de los elementos.
+  ```ts
+  @Field(() => [UserCredential])
+  credentials: UserCredential[];
+  ```
+- **`number` cuando es `Int`, no `Float`** — por defecto `@Field()` sobre un `number` mapea a `Float`. Para enteros reales (`sort_order`, `altitude_meters`) hay que forzarlo.
+  ```ts
+  @Field(() => Int)
+  sort_order: number;
+  ```
+- **`ID`** — si quieres que GraphQL trate el campo como identificador y no como texto libre.
+  ```ts
+  @Field(() => ID)
+  id: string;
+  ```
+- **Referencias circulares o clases declaradas más abajo/en otro archivo** — el `() => Tipo` es un *thunk* (función perezosa) que se evalúa recién cuando GraphQL construye el schema, no en el momento del import. Evita errores cuando dos modelos se referencian entre sí.
+
 ### Troubleshooting: el puerto 3000 ya está en uso
 
 Si al levantar el proyecto ves un error de `EADDRINUSE` (o simplemente no arranca porque el puerto ya está ocupado, por ejemplo de una corrida anterior que quedó colgada), revisa qué proceso lo está usando:
@@ -248,6 +274,113 @@ model bookings {
 
 El string dentro de `@relation("...")` (`"booking_user"`, `"booking_created_by"`) es una etiqueta arbitraria — no genera tabla ni columna, solo le dice a Prisma qué campo array (`bookings`/`created_bookings`) le corresponde a qué FK (`user_id`/`created_by`). Tiene que ser único por par de relaciones y coincidir en ambos lados; si solo hay **una** relación entre dos modelos (como `seasons` → `companies`), no hace falta nombrarla.
 
+### `XCreateInput` vs `XUncheckedCreateInput` — dos formas de escribir una relación
+
+Por cada modelo, Prisma genera **dos** variantes de input para `create`/`update`, y hay que elegir la correcta según cómo tengas el dato de la relación a mano.
+
+**`XCreateInput`** ("checked") — exige el objeto de relación completo, no el FK escalar:
+
+```ts
+await databasesService.userCredential.create({
+  data: {
+    password: '...',
+    user: { connect: { id: userId } }, // conecta a un User que ya existe
+  },
+});
+```
+
+Te da más expresividad (`connect`, `connectOrCreate`, `create` anidado para crear el padre y el hijo en el mismo query), y TypeScript valida que la relación tenga la forma correcta.
+
+**`XUncheckedCreateInput`** — acepta el FK escalar directo, sin pasar por el objeto de relación:
+
+```ts
+await databasesService.userCredential.create({
+  data: {
+    password: '...',
+    userId: userId, // el id directo, sin `connect`
+  },
+});
+```
+
+Se llama "unchecked" porque TypeScript no valida que ese id corresponda a una fila real (Postgres sí lo valida en runtime, vía la FK constraint) — le "quitas" esa capa de chequeo a cambio de simplicidad.
+
+**Cuál usar**: si tu DTO/service ya trae el id como dato plano (el caso más común en este proyecto — `userId`, `companyId`, etc. llegan como `string` desde el resolver), usa `Unchecked` y evítate armar el objeto `{ connect: { id } }` a mano. Si estás construyendo la relación en el mismo query (conectar explícitamente, o crear padre e hijo juntos), usa la variante `Checked`.
+
+Mismo patrón aplica a `XUpdateInput` / `XUncheckedUpdateInput`.
+
+### Otros tipos generados que vas a usar seguido
+
+Además de `Create`/`Unchecked`, Prisma genera (por modelo) varios tipos más que vale la pena conocer:
+
+- **`XWhereInput`** — filtros de búsqueda (`findMany`, `count`, `updateMany`, `deleteMany`). Soporta combinaciones (`AND`/`OR`/`NOT`) y operadores por campo (`contains`, `gte`, `in`, etc.).
+  ```ts
+  databasesService.user.findMany({ where: { companyId, status: true } });
+  ```
+- **`XWhereUniqueInput`** — igual que `WhereInput` pero restringido a campos únicos (`id`, o cualquier `@unique`/`@@unique`). Es lo único válido para `findUnique`, `update`, `delete` (esos comandos necesitan garantía de que devuelven/afectan una sola fila).
+  ```ts
+  databasesService.user.findUnique({ where: { id } });
+  ```
+- **`XCreateManyInput` / `XUncheckedCreateManyInput`** — para `createMany`, insertar varias filas en un solo query. Sigue la misma lógica checked/unchecked, pero sin soporte para relaciones anidadas (solo FKs escalares).
+- **`XOrderByWithRelationInput`** — para `orderBy`, incluso ordenando por un campo de una relación (`orderBy: { company: { name: 'asc' } }`).
+- **`XSelect` / `XInclude`** — controlan qué campos/relaciones trae la respuesta. `select` es una lista blanca explícita (solo lo que pidas); `include` trae todos los campos del modelo más las relaciones que agregues (como ya usas en `findByIdWithCredential` con `include: { credentials: true }`).
+
+### `@map` y `@@map` — nombres distintos entre Prisma y la base
+
+Los modelos usan PascalCase singular (`Company`, `User`) y los campos camelCase (`createdAt`), como es convención en TypeScript. Pero las tablas y columnas reales en Postgres siguen `snake_case` plural (`companies`, `created_at`), como es convención SQL. `@map`/`@@map` traducen entre ambos mundos sin mezclar estilos:
+
+```prisma
+model Company {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") // campo Prisma: createdAt / columna real: created_at
+
+  @@map("companies") // modelo Prisma: Company / tabla real: companies
+}
+```
+
+- `@map("created_at")` va sobre un **campo** — traduce el nombre de la columna.
+- `@@map("companies")` (con doble `@`) va a nivel de **modelo**, dentro del bloque — traduce el nombre de la tabla.
+
+Sin esto, Prisma usaría literalmente `Company`/`createdAt` como nombres de tabla/columna, mezclando camelCase con el resto de la base.
+
+### `@unique`, `@@unique` y `@@index` — unicidad simple, compuesta e índices
+
+**`@unique`** (un solo `@`) va sobre **un campo individual**, dentro de la misma línea del campo — fuerza que esa columna sola sea única en toda la tabla:
+
+```prisma
+model UserCredential {
+  userId String @unique @map("user_id") // ningún otro user_credentials puede repetir este user_id
+}
+
+model Company {
+  slug String @unique @db.VarChar(80) // el slug es único a nivel global, entre todas las companies
+}
+```
+
+**`@@unique([...])`** (doble `@@`) va dentro del bloque del modelo, no pegado a un campo — fuerza unicidad sobre la **combinación** de varias columnas juntas, no cada una por separado:
+
+```prisma
+model User {
+  companyId String? @map("company_id")
+  email     String?
+
+  @@unique([companyId, email], map: "users_company_id_email_key")
+}
+```
+
+Acá el mismo `email` puede repetirse entre distintas `companies`, pero no dos veces dentro de la misma `company_id` — así se modela unicidad "scoped" en un esquema multi-tenant. Esto **no se puede lograr con `@unique` simple** en ninguno de los dos campos por separado.
+
+**`@@index([...])`**: crea un índice para acelerar queries que filtran/ordenan por esa columna (ej. `WHERE company_id = ...`), **sin forzar unicidad** — a diferencia de `@unique`/`@@unique`, permite valores repetidos:
+
+```prisma
+model User {
+  companyId String? @map("company_id")
+
+  @@index([companyId], map: "idx_users_company")
+}
+```
+
+El `map: "..."` en los tres (`@unique` también lo acepta) es opcional: le pone un nombre explícito a la constraint/índice en Postgres en vez de dejar que Prisma genere uno automático (útil para que el nombre sea legible en los logs de la base o al hacer rollback manual).
+
 Prisma tiene dos comandos que se confunden fácil porque casi siempre se usan juntos, pero resuelven cosas distintas:
 
 ### `prisma migrate dev` — cuando cambias el schema
@@ -284,6 +417,43 @@ Casos típicos donde solo necesitas `generate`, sin `migrate`:
 
 > Si cambiaste `schema.prisma` → `migrate dev` (esto ya regenera el cliente por ti).
 > Si el schema no cambió pero el cliente generado no existe o está desactualizado → `generate` a secas.
+
+### Troubleshooting: cambio de tipo de columna falla por datos existentes
+
+Si cambias el tipo de un campo que ya tiene filas en la base (ej. pasar `id String` a `id String @db.Uuid`), `migrate dev` puede fallar con algo así:
+
+```
+⚠️ We found changes that cannot be executed:
+  • Changed the type of `id` on the `users` table. No cast exists, the column would be
+    dropped and recreated, which cannot be done since the column is required and there
+    is data in the table.
+```
+
+Pasa porque Postgres no sabe cómo convertir los valores existentes al nuevo tipo automáticamente. En desarrollo local, si no te importa perder los datos actuales, lo más simple es resetear la base primero (queda vacía) y recién ahí generar la migración nueva — sin data que convertir, el cambio de tipo no tiene conflicto:
+
+```bash
+# 1. Vacía la base y reaplica las migraciones YA existentes (sin los cambios nuevos del schema)
+pnpm prisma migrate reset
+
+# 2. Con la base vacía, genera y aplica la migración con los cambios pendientes del schema
+pnpm prisma migrate dev --name nombre_del_cambio
+```
+
+No hace falta pasar `--schema`: Prisma ya lo toma de `prisma.config.ts`.
+
+Si en cambio necesitas **conservar los datos** (por ejemplo en producción, o porque tienes data local que no quieres perder), no uses `migrate reset`. En su lugar:
+
+```bash
+pnpm prisma migrate dev --create-only --name nombre_del_cambio
+```
+
+Esto genera el archivo de migración sin aplicarlo. Ábrelo y agrega manualmente un `USING` antes del `ALTER COLUMN` para castear los valores existentes, por ejemplo:
+
+```sql
+ALTER TABLE "users" ALTER COLUMN "id" TYPE UUID USING "id"::uuid;
+```
+
+(el cast `::uuid` funciona si los valores actuales ya son UUIDs válidos como texto). Después aplica la migración editada con `pnpm prisma migrate dev`.
 
 ### Troubleshooting: `ReferenceError: exports is not defined in ES module scope`
 

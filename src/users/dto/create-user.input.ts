@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { RoleType } from 'src/databases/generated/prisma/enums';
 
 @InputType()
 export class CreateUserInput {
@@ -11,20 +12,32 @@ export class CreateUserInput {
   @IsString()
   lastname: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   @IsString()
-  username: string;
+  username?: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   @IsString()
-  email: string;
+  email?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @Field(() => RoleType, { nullable: true })
+  @IsOptional()
+  @IsEnum(RoleType)
+  role?: RoleType;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 
   @Field()
   @IsString()
   password: string;
-
-  @Field()
-  @IsOptional()
-  @IsString()
-  phone?: string;
 }

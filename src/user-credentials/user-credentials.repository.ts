@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from 'src/common/base/base.repository';
 import { DatabasesService } from 'src/databases/databases.service';
-import { Prisma } from 'src/databases/generated/prisma/client';
+import { PrismaTransaction } from 'src/databases/prisma.types';
+import { CreateUserCredentialInput } from './dto/create-user-credential.input';
 
 @Injectable()
-export class UserCredentialsRepository extends BaseRepository<Prisma.user_credentialsModel> {
-  constructor(private readonly databasesService: DatabasesService) {
-    super(databasesService, 'user_credentials');
+export class UserCredentialsRepository {
+  constructor(private readonly databasesService: DatabasesService) {}
+
+  create(payload: CreateUserCredentialInput, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user_credentials.create({ data: payload });
   }
 }

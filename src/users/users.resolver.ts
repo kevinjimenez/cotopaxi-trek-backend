@@ -18,8 +18,8 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: 'user' })
-  findOne(@Args('id') id: string) {
-    return this.usersService.findOne(id);
+  findByIdWithCredential(@Args('id') id: string) {
+    return this.usersService.findByIdWithCredential(id);
   }
 
   // @Mutation(() => User)

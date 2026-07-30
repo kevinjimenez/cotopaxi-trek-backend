@@ -20,8 +20,10 @@ model companies {
   status     Boolean  @default(false)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  // users      users[]
-  // seasons    seasons[]
+
+  users     users[]
+  seasons   seasons[]
+  mountains mountains[]
 }
 
 model seasons {
@@ -31,8 +33,12 @@ model seasons {
   is_current Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  // companies   companies? @relation(fields: [companiesId], references: [id])
-  // companiesId String?
+
+  company_id String?
+  company    companies? @relation(fields: [company_id], references: [id])
+
+  user_seasons     user_seasons[]
+  season_mountains season_mountains[]
 }
 
 model season_mountains {
@@ -41,6 +47,13 @@ model season_mountains {
   price      Decimal  @db.Decimal(10, 2)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  season_id   Int?
+  season      seasons?   @relation(fields: [season_id], references: [id])
+  mountain_id Int?
+  mountain    mountains? @relation(fields: [mountain_id], references: [id])
+
+  bookings bookings[]
 }
 
 model mountains {
@@ -50,6 +63,11 @@ model mountains {
   status          Boolean  @default(true)
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
+
+  company_id String?
+  company    companies? @relation(fields: [company_id], references: [id])
+
+  season_mountains season_mountains[]
 }
 
 // Enum: valores fijos permitidos para el campo `role` de `users`.
@@ -60,29 +78,35 @@ enum RoleType {
 }
 
 model users {
-  id          String            @id @default(uuid(7))
-  name        String            @db.VarChar(150)
-  lastname    String            @db.VarChar(150)
-  username    String            @unique @db.VarChar(50)
-  email       String            @unique @db.VarChar(150)
-  phone       String?           @db.VarChar(20)
-  role        RoleType          @default(admin)
-  status      Boolean           @default(true)
-  created_at  DateTime          @default(now())
-  updated_at  DateTime          @updatedAt
+  id         String   @id @default(uuid(7))
+  name       String   @db.VarChar(150)
+  lastname   String   @db.VarChar(150)
+  username   String   @unique @db.VarChar(50)
+  email      String   @unique @db.VarChar(150)
+  phone      String?  @db.VarChar(20)
+  role       RoleType @default(admin)
+  status     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
   credentials user_credentials? // lado "uno" de la relación 1-a-1, opcional (no genera columna en la tabla)
-  // company_id  String?
-  // company     companies?        @relation(fields: [company_id], references: [id])
+
+  company_id String?
+  company    companies? @relation(fields: [company_id], references: [id])
+
+  user_seasons user_seasons[]
+  bookings     bookings[]
 }
 
 // Tabla separada para credenciales, en relación 1-a-1 con `users`.
 model user_credentials {
   id         Int      @id @default(autoincrement())
-  user_id    String   @unique // FK hacia users.id; @unique es lo que fuerza que sea 1-a-1 (si no, sería 1-a-muchos)
-  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade) // si se borra el user, se borran sus credenciales
   password   String   @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  user_id String @unique // FK hacia users.id; @unique es lo que fuerza que sea 1-a-1 (si no, sería 1-a-muchos)
+  user    users  @relation(fields: [user_id], references: [id], onDelete: Cascade) // si se borra el user, se borran sus credenciales
 }
 
 model user_seasons {
@@ -90,9 +114,19 @@ model user_seasons {
   status     Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  user_id   String?
+  user      users?   @relation(fields: [user_id], references: [id])
+  season_id Int?
+  season    seasons? @relation(fields: [season_id], references: [id])
 }
 
 model bookings {
   id     String  @id @default(uuid(7))
   status Boolean @default(true)
+
+  user_id            String?
+  user               users?            @relation(fields: [user_id], references: [id])
+  season_mountain_id Int?
+  seasonMountain     season_mountains? @relation(fields: [season_mountain_id], references: [id])
 }

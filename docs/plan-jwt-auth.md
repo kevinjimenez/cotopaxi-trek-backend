@@ -353,7 +353,78 @@ findAll() {
 }
 ```
 
-Si se quiere además restringir por rol (`admin`/`superadmin`), agregar `RolesGuard` + decorador `@Roles(RoleType.admin, RoleType.superadmin)` que lea `req.user.role` seteado por `JwtStrategy.validate`.
+### 3.7.1 Restringir por rol: `@Roles()` + `RolesGuard`
+
+`GqlAuthGuard` solo confirma que hay un JWT válido (autenticación). Para autorización por rol (`admin`/`superadmin`/`customer`) se necesita una segunda capa: un decorador que declare qué roles puede pasar, y un guard que lea esa metadata + el `role` que `JwtStrategy.validate` ya dejó en `req.user`.
+
+**`decorators/roles.decorator.ts`**
+
+```ts
+import { SetMetadata } from '@nestjs/common';
+import { RoleType } from 'src/databases/generated/prisma/enums';
+
+export const ROLES_KEY = 'roles';
+export const Roles = (...roles: RoleType[]) => SetMetadata(ROLES_KEY, roles);
+```
+
+`SetMetadata` adjunta la lista de roles permitidos al handler (la query/mutation) o a la clase completa del resolver; `RolesGuard` la lee con `Reflector`.
+
+**`guards/roles.guard.ts`**
+
+```ts
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import type { Request } from 'express';
+import { RoleType } from 'src/databases/generated/prisma/enums';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+import { AuthenticatedUser } from '../types/authenticated-user.type';
+
+interface RequestWithUser extends Request {
+  user: AuthenticatedUser;
+}
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<RoleType[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (!requiredRoles || requiredRoles.length === 0) return true;
+
+    const ctx = GqlExecutionContext.create(context);
+    const { user } = ctx.getContext<{ req: RequestWithUser }>().req;
+
+    return requiredRoles.includes(user.role);
+  }
+}
+```
+
+`getAllAndOverride` revisa primero el metadata del método (`context.getHandler()`) y si no encuentra nada cae al de la clase (`context.getClass()`) — así se puede poner `@Roles(...)` a nivel de resolver completo o solo en una query puntual.
+
+**Uso combinado** (orden importa: `GqlAuthGuard` primero para que exista `req.user`, `RolesGuard` después para leerlo):
+
+```ts
+@UseGuards(GqlAuthGuard, RolesGuard)
+@Roles(RoleType.admin, RoleType.superadmin)
+@Query(() => [User], { name: 'users' })
+findAll() {
+  return this.usersService.findAll();
+}
+```
+
+Sin `@Roles(...)` en el handler/clase, `RolesGuard` deja pasar a cualquier usuario autenticado (`requiredRoles` vacío → `return true`) — por eso siempre va junto con `GqlAuthGuard`, nunca solo.
+
+**Registro en `auth.module.ts`**: agregar `RolesGuard` a `providers` (no necesita imports nuevos, `Reflector` ya lo provee `@nestjs/core` globalmente) y exportarlo si otros módulos van a usarlo directo en sus resolvers:
+
+```ts
+providers: [AuthResolver, AuthService, JwtStrategy, RolesGuard],
+exports: [JwtModule, PassportModule, RolesGuard],
+```
 
 ### 3.8 Verificación
 
@@ -370,6 +441,7 @@ Si se quiere además restringir por rol (`admin`/`superadmin`), agregar `RolesGu
 3. Verificar que un `createUser` nuevo guarda el password hasheado (revisar la tabla `user_credentials` directamente).
 4. Probar una query protegida (`users`) sin header `Authorization` → debe fallar con `Unauthorized`; con `Authorization: Bearer <accessToken>` → debe pasar.
 5. Confirmar que el JWT decodificado (jwt.io) trae `sub`, `role`, `companyId` y respeta `JWT_EXPIRES_IN`.
+6. Con `@Roles(RoleType.admin, RoleType.superadmin)` en `users`, loguear con un usuario `customer` y confirmar que la query falla (guard deniega, no `Unauthorized` sino `Forbidden` si se lanza explícitamente); loguear con `admin`/`superadmin` y confirmar que pasa.
 
 ## 4. Orden sugerido de PRs/commits
 

@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
-import { UserCredentialsModule } from 'src/user-credentials/user-credentials.module';
-import { UsersRepository } from './users.repository';
-import { UsersResolver } from './users.resolver';
-import { UsersService } from './users.service';
+import { CommonModule } from 'src/common/common.module';
+import { CredentialsRepository } from './repositories/credentials.repository';
+import { UsersRepository } from './repositories/users.repository';
+import { UsersResolver } from './resolvers/users.resolver';
+import { CredentialsService } from './services/credentials.service';
+import { UsersService } from './services/users.service';
 
 @Module({
-  imports: [UserCredentialsModule],
-  providers: [UsersResolver, UsersService, UsersRepository],
-  exports: [UsersService],
+  imports: [CommonModule],
+  providers: [
+    UsersResolver,
+    UsersService,
+    UsersRepository,
+    CredentialsService,
+    CredentialsRepository,
+  ],
+  exports: [UsersService, CredentialsService],
 })
 export class UsersModule {}

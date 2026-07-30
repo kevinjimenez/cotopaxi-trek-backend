@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
-import { CreateUserCredentialInput } from 'src/user-credentials/dto/create-user-credential.input';
-import { UserCredentialsService } from 'src/user-credentials/user-credentials.service';
-import { CreateUserInput } from './dto/create-user.input';
-import { UsersRepository } from './users.repository';
+import { CreateCredentialInput } from '../dto/create-credential.input';
+import { CreateUserInput } from '../dto/create-user.input';
+import { UsersRepository } from '../repositories/users.repository';
+import { CredentialsService } from './credentials.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly databasesService: DatabasesService,
     private readonly usersRepository: UsersRepository,
-    private readonly userCredentialsService: UserCredentialsService,
+    private readonly credentialsService: CredentialsService,
   ) {}
 
   findAll(tx?: PrismaTransaction) {
@@ -24,11 +24,11 @@ export class UsersService {
     return this.databasesService.$transaction(async (tx) => {
       const createdUser = await this.usersRepository.create(user, tx);
 
-      const credential: CreateUserCredentialInput = {
+      const credential: CreateCredentialInput = {
         userId: createdUser.id,
         password: password,
       };
-      await this.userCredentialsService.create(credential, tx);
+      await this.credentialsService.create(credential, tx);
 
       return createdUser;
     });

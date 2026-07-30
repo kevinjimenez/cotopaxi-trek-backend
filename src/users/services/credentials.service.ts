@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { BcryptAdapter } from 'src/common/adapters/bcrypt.adapter';
 import { PrismaTransaction } from 'src/databases/prisma.types';
-import { CreateUserCredentialInput } from './dto/create-user-credential.input';
-import { UserCredentialsRepository } from './user-credentials.repository';
+import { CreateCredentialInput } from '../dto/create-credential.input';
+import { CredentialsRepository } from '../repositories/credentials.repository';
 
 @Injectable()
-export class UserCredentialsService {
+export class CredentialsService {
   constructor(
-    private readonly userCredentialsRepository: UserCredentialsRepository,
+    private readonly userCredentialsRepository: CredentialsRepository,
     private readonly bcryptAdapter: BcryptAdapter,
   ) {}
 
-  create(payload: CreateUserCredentialInput, tx?: PrismaTransaction) {
+  create(payload: CreateCredentialInput, tx?: PrismaTransaction) {
     const { password, userId } = payload;
     const hash = this.bcryptAdapter.hash(password);
     const toCreate = { userId, password: hash };

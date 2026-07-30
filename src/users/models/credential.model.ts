@@ -2,7 +2,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { BaseModel } from 'src/common/base/base.model';
 
 @ObjectType()
-export class UserCredential extends BaseModel {
+export class Credential extends BaseModel {
   @Field(() => Int)
   id: number;
 

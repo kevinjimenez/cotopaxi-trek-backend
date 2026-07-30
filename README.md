@@ -477,6 +477,39 @@ pnpm prisma generate
 
 Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
+## `type` vs `interface` — cuándo usar cada uno
+
+Regla práctica que seguimos en este repo:
+
+**`interface`** — cuando defines la forma de un objeto "desde cero" (no derivada de otro tipo), sobre todo si algo la va a `implements` o `extends`:
+
+```ts
+// src/common/interfaces/hashing-adapter.interface.ts
+export interface HashingAdapter {
+  hash(plain: string): string;
+  compare(plain: string, hash: string): Promise<boolean>;
+}
+// BcryptAdapter implements HashingAdapter
+
+// src/auth/interfaces/request-with-user.interface.ts
+export interface RequestWithUser extends Request {
+  user: AuthenticatedUser;
+}
+```
+
+**`type`** — cuando el tipo se **deriva/computa** a partir de otra cosa: uniones, genéricos, utility types, o el resultado de un tipo condicional/mapeado:
+
+```ts
+// src/auth/types/authenticated-user.type.ts
+export type AuthenticatedUser = Prisma.UserGetPayload<{
+  include: { credentials: true };
+}>;
+```
+
+`Prisma.UserGetPayload<...>` es un alias genérico basado en tipos condicionales/mapeados (`GetResult<Payload, Args>` por dentro) — no una forma de objeto estática, así que no se puede escribir como `interface AuthenticatedUser extends Prisma.UserGetPayload<...>` (un `interface` solo puede extender object types estáticos, no un genérico que se resuelve condicionalmente). `type` también es la única opción para uniones (`'a' | 'b'`), tuplas, `Pick<T, K>`, `keyof T`, tipos de función, etc. — cosas que `interface` no puede expresar.
+
+**Regla de bolsillo:** si vas a `implements` o `extends` algo → `interface`; si estás derivando un tipo de otro con genéricos/uniones → `type`. No hay un ganador "más usado" en general — la decisión la da esta regla, no popularidad. En el código relacionado a Prisma vas a ver casi siempre `type` (así generan ellos mismos sus tipos); en contratos de servicios (DTOs, adapters) es más común `interface`.
+
 ## Autenticación (JWT)
 
 ### `JWT_EXPIRES_IN` — qué tipo espera y qué valores acepta

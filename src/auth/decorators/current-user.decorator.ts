@@ -4,12 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import type { Request } from 'express';
-import { AuthenticatedUser } from '../types/authenticated-user.type';
-
-interface RequestWithUser extends Request {
-  user: AuthenticatedUser;
-}
+import type { AuthenticatedUser } from '../types/authenticated-user.type';
+import type { RequestWithUser } from '../interfaces/request-with-user.interface';
 
 export const CurrentUser = createParamDecorator(
   (data: keyof AuthenticatedUser | undefined, context: ExecutionContext) => {
@@ -17,8 +13,6 @@ export const CurrentUser = createParamDecorator(
     const user = ctx.getContext<{ req: RequestWithUser }>().req.user;
 
     if (!user) throw new InternalServerErrorException('');
-
-    console.log({ data, value: !data ? user : user[data] });
 
     return !data ? user : user[data];
   },

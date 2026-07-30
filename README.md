@@ -477,6 +477,57 @@ pnpm prisma generate
 
 Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
+## Autenticación (JWT)
+
+### `JWT_EXPIRES_IN` — qué tipo espera y qué valores acepta
+
+`AuthModule` registra `JwtModule.register({ signOptions: { expiresIn: envs.jwtExpiresIn } })`. `expiresIn` **no acepta un `string` cualquiera**: su tipo real (heredado de `jsonwebtoken` vía `@nestjs/jwt`, definido en el paquete [`ms`](https://www.npmjs.com/package/ms)) es:
+
+```ts
+type Unit =
+  | 'Years' | 'Year' | 'Yrs' | 'Yr' | 'Y'
+  | 'Weeks' | 'Week' | 'W'
+  | 'Days' | 'Day' | 'D'
+  | 'Hours' | 'Hour' | 'Hrs' | 'Hr' | 'H'
+  | 'Minutes' | 'Minute' | 'Mins' | 'Min' | 'M'
+  | 'Seconds' | 'Second' | 'Secs' | 'Sec' | 's'
+  | 'Milliseconds' | 'Millisecond' | 'Msecs' | 'Msec' | 'Ms';
+
+type UnitAnyCase = Unit | Uppercase<Unit> | Lowercase<Unit>;
+
+type StringValue =
+  | `${number}` // milisegundos, sin unidad: "3600000"
+  | `${number}${UnitAnyCase}` // sin espacio: "1d", "2h"
+  | `${number} ${UnitAnyCase}`; // con espacio: "1 day", "2 hours"
+```
+
+O directamente un `number` (interpretado siempre en **segundos**, no milisegundos — es la convención de `jsonwebtoken`, distinta a la de `ms`).
+
+Como `envs.jwtExpiresIn` viene de `process.env` tipado como `string` genérico en `envs.ts`, TS no puede verificar en tiempo de compilación que cumple el formato `StringValue`. Por eso en `auth.module.ts` se castea explícitamente:
+
+```ts
+import { JwtSignOptions } from '@nestjs/jwt';
+
+signOptions: {
+  expiresIn: envs.jwtExpiresIn as JwtSignOptions['expiresIn'],
+},
+```
+
+**Valores válidos para `JWT_EXPIRES_IN` en `.env`** (ejemplos, no exhaustivo — ver `Unit` arriba):
+
+| Ejemplo    | Significado         |
+| ---------- | -------------------- |
+| `60`       | 60 segundos (número puro → segundos) |
+| `"30s"`    | 30 segundos           |
+| `"15m"`    | 15 minutos            |
+| `"2h"`     | 2 horas               |
+| `"1d"`     | 1 día                 |
+| `"2 days"` | 2 días (forma larga, con espacio) |
+| `"1w"`     | 1 semana              |
+| `"1y"`     | 1 año                 |
+
+Nota: `ms`/`jsonwebtoken` no distinguen mayúsculas/minúsculas (`UnitAnyCase`), así que `"1D"`, `"1d"` y `"1 Day"` son equivalentes.
+
 ## Run tests
 
 ```bash

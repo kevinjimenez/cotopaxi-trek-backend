@@ -94,8 +94,9 @@ model users {
   company_id String?
   company    companies? @relation(fields: [company_id], references: [id])
 
-  user_seasons user_seasons[]
-  bookings     bookings[]
+  user_seasons     user_seasons[]
+  bookings         bookings[]     @relation("booking_user")
+  created_bookings bookings[]     @relation("booking_created_by")
 }
 
 // Tabla separada para credenciales, en relación 1-a-1 con `users`.
@@ -126,7 +127,9 @@ model bookings {
   status Boolean @default(true)
 
   user_id            String?
-  user               users?            @relation(fields: [user_id], references: [id])
+  user               users?            @relation("booking_user", fields: [user_id], references: [id])
+  created_by         String?
+  createdBy          users?            @relation("booking_created_by", fields: [created_by], references: [id])
   season_mountain_id Int?
   seasonMountain     season_mountains? @relation(fields: [season_mountain_id], references: [id])
 }

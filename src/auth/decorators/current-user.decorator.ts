@@ -12,15 +12,14 @@ interface RequestWithUser extends Request {
 }
 
 export const CurrentUser = createParamDecorator(
-  (_data, context: ExecutionContext) => {
-    console.log(_data);
+  (data: keyof AuthenticatedUser | undefined, context: ExecutionContext) => {
     const ctx = GqlExecutionContext.create(context);
     const user = ctx.getContext<{ req: RequestWithUser }>().req.user;
 
     if (!user) throw new InternalServerErrorException('');
 
-    return user;
+    console.log({ data, value: !data ? user : user[data] });
 
-    // return !data ? user : user[data];
+    return !data ? user : user[data];
   },
 );

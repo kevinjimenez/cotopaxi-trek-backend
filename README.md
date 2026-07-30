@@ -105,6 +105,32 @@ Al levantar el proyecto (por ejemplo con `pnpm run start:dev`), Nest genera el s
 http://localhost:3000/graphql
 ```
 
+### `@Field()` inferido vs `@Field(() => Tipo)` explícito
+
+En el enfoque code-first, `@Field()` sin argumentos usa `reflect-metadata` para adivinar el tipo GraphQL a partir del tipo de TypeScript. Eso funciona bien para `string`, `boolean` y clases simples, pero **hay que ser explícito con `@Field(() => Tipo)`** en estos casos:
+
+- **Enums** — un enum de Prisma (`RoleType`) es un `const` object + union type; en runtime no queda tipo que `reflect-metadata` pueda leer.
+  ```ts
+  @Field(() => RoleType)
+  role?: RoleType;
+  ```
+- **Arrays** — TypeScript emite `Array` como metadata, sin el tipo de los elementos.
+  ```ts
+  @Field(() => [UserCredential])
+  credentials: UserCredential[];
+  ```
+- **`number` cuando es `Int`, no `Float`** — por defecto `@Field()` sobre un `number` mapea a `Float`. Para enteros reales (`sort_order`, `altitude_meters`) hay que forzarlo.
+  ```ts
+  @Field(() => Int)
+  sort_order: number;
+  ```
+- **`ID`** — si quieres que GraphQL trate el campo como identificador y no como texto libre.
+  ```ts
+  @Field(() => ID)
+  id: string;
+  ```
+- **Referencias circulares o clases declaradas más abajo/en otro archivo** — el `() => Tipo` es un *thunk* (función perezosa) que se evalúa recién cuando GraphQL construye el schema, no en el momento del import. Evita errores cuando dos modelos se referencian entre sí.
+
 ### Troubleshooting: el puerto 3000 ya está en uso
 
 Si al levantar el proyecto ves un error de `EADDRINUSE` (o simplemente no arranca porque el puerto ya está ocupado, por ejemplo de una corrida anterior que quedó colgada), revisa qué proceso lo está usando:

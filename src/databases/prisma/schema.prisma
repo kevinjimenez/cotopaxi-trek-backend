@@ -13,61 +13,23 @@ datasource db {
   provider = "postgresql"
 }
 
-model companies {
-  id         String   @id @default(uuid(7))
-  name       String   @db.VarChar(150)
-  slug       String   @db.VarChar(80)
-  status     Boolean  @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model Company {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  name         String   @db.VarChar(150)
+  slug         String   @unique @db.VarChar(80)
+  logoUrl      String?  @map("logo_url") @db.VarChar(300)
+  primaryColor String?  @map("primary_color") @db.VarChar(7)
+  instagram    String?  @db.VarChar(100)
+  whatsapp     String   @db.VarChar(20)
+  status       Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  users     users[]
-  seasons   seasons[]
-  mountains mountains[]
-}
+  users     User[]
+  seasons   Season[]
+  mountains Mountain[]
 
-model seasons {
-  id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(100)
-  year       Int      @db.Integer()
-  is_current Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  company_id String?
-  company    companies? @relation(fields: [company_id], references: [id])
-
-  user_seasons     user_seasons[]
-  season_mountains season_mountains[]
-}
-
-model season_mountains {
-  id         Int      @id @default(autoincrement())
-  sort_order Int      @db.Integer()
-  price      Decimal  @db.Decimal(10, 2)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  season_id   Int?
-  season      seasons?   @relation(fields: [season_id], references: [id])
-  mountain_id Int?
-  mountain    mountains? @relation(fields: [mountain_id], references: [id])
-
-  bookings bookings[]
-}
-
-model mountains {
-  id              Int      @id @default(autoincrement())
-  name            String   @db.VarChar(100)
-  altitude_meters Int      @db.Integer()
-  status          Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  company_id String?
-  company    companies? @relation(fields: [company_id], references: [id])
-
-  season_mountains season_mountains[]
+  @@map("companies")
 }
 
 // Enum: valores fijos permitidos para el campo `role` de `users`.
@@ -77,59 +39,154 @@ enum RoleType {
   superadmin
 }
 
-model users {
-  id         String   @id @default(uuid(7))
-  name       String   @db.VarChar(150)
-  lastname   String   @db.VarChar(150)
-  username   String   @unique @db.VarChar(50)
-  email      String   @unique @db.VarChar(150)
-  phone      String?  @db.VarChar(20)
-  role       RoleType @default(admin)
-  status     Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model User {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  companyId String? @map("company_id") @db.Uuid
 
-  credentials user_credentials? // lado "uno" de la relación 1-a-1, opcional (no genera columna en la tabla)
+  name      String   @db.VarChar(150)
+  lastname  String   @db.VarChar(150)
+  username  String?  @db.VarChar(50)
+  email     String?  @db.VarChar(150)
+  phone     String?  @db.VarChar(20)
+  role      RoleType @default(admin)
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  company_id String?
-  company    companies? @relation(fields: [company_id], references: [id])
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict) // referencia a companyId
 
-  user_seasons     user_seasons[]
-  bookings         bookings[]     @relation("booking_user")
-  created_bookings bookings[]     @relation("booking_created_by")
+  credentials UserCredential? // lado "uno" de la relación 1-a-1, opcional (no genera columna en la tabla)
+  userSeasons UserSeason[]
+  bookings    Booking[]
+
+  // constraints UNIQUE compuestas reglas de negocio
+  @@unique([companyId, email], map: "users_company_id_email_key")
+  @@unique([companyId, phone], map: "users_company_id_phone_key")
+  @@unique([companyId, username], map: "users_company_id_username_key")
+  // índices simples
+  @@index([companyId], map: "idx_users_company")
+  @@index([email], map: "idx_users_email")
+  @@index([phone], map: "idx_users_phone")
+  @@index([username], map: "idx_users_name")
+  @@map("users")
 }
 
 // Tabla separada para credenciales, en relación 1-a-1 con `users`.
-model user_credentials {
-  id         Int      @id @default(autoincrement())
-  password   String   @db.VarChar(255)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model UserCredential {
+  id     Int    @id @default(autoincrement())
+  userId String @unique @map("user_id") @db.Uuid // FK hacia users.id; @unique es lo que fuerza que sea 1-a-1 (si no, sería 1-a-muchos)
 
-  user_id String @unique // FK hacia users.id; @unique es lo que fuerza que sea 1-a-1 (si no, sería 1-a-muchos)
-  user    users  @relation(fields: [user_id], references: [id], onDelete: Cascade) // si se borra el user, se borran sus credenciales
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // si se borra el user, se borran sus credenciales
+
+  @@map("user_credentials")
 }
 
-model user_seasons {
-  id         Int      @id @default(autoincrement())
+model Season {
+  id        Int     @id @default(autoincrement())
+  companyId String? @map("company_id") @db.Uuid
+
+  name      String   @db.VarChar(100)
+  year      Int      @db.Integer
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isCurrent Boolean  @default(true) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  userSeasons     UserSeason[]
+  seasonMountains SeasonMountain[]
+
+  @@unique([companyId, year], map: "seasons_company_id_year_key")
+  @@index([companyId], map: "idx_seasons_company")
+  @@map("seasons")
+}
+
+model Mountain {
+  id        Int     @id @default(autoincrement())
+  companyId String? @map("company_id") @db.Uuid
+
+  name                 String   @db.VarChar(100)
+  altitudeMeters       Int      @map("altitude_meters") @db.Integer
+  location             String   @db.VarChar(150)
+  generalDescription   String?  @map("general_description") @db.Text
+  technicalDescription String?  @map("technical_description") @db.Text
+  status               Boolean  @default(true)
+  imageUrl             String?  @map("image_url") @db.VarChar(300)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  seasonMountains SeasonMountain[]
+
+  @@index([companyId], map: "idx_mountains_company")
+  @@map("mountains")
+}
+
+model SeasonMountain {
+  id         Int  @id @default(autoincrement())
+  seasonId   Int? @map("season_id")
+  mountainId Int? @map("mountain_id")
+
+  sortOrder Int       @map("sort_order") @db.SmallInt
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  price     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  season   Season?   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  mountain Mountain? @relation(fields: [mountainId], references: [id], onDelete: Restrict)
+
+  bookings Booking[]
+
+  @@unique([seasonId, mountainId], map: "season_mountains_season_id_mountain_id_key")
+  @@unique([seasonId, sortOrder], map: "season_mountains_season_id_sort_order_key")
+  @@index([seasonId], map: "idx_sm_season")
+  @@map("season_mountains")
+}
+
+model UserSeason {
+  id       Int     @id @default(autoincrement())
+  userId   String? @map("user_id") @db.Uuid
+  seasonId Int?    @map("season_id")
+
   status     Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  user_id   String?
-  user      users?   @relation(fields: [user_id], references: [id])
-  season_id Int?
-  season    seasons? @relation(fields: [season_id], references: [id])
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season Season? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonId], map: "user_seasons_user_id_season_id_key")
+  @@index([userId], map: "idx_us_user")
+  @@index([seasonId], map: "idx_us_season")
+  @@map("user_seasons")
 }
 
-model bookings {
-  id     String  @id @default(uuid(7))
-  status Boolean @default(true)
+model Booking {
+  id               String  @id @default(uuid(7)) @db.Uuid
+  userId           String? @map("user_id") @db.Uuid
+  seasonMountainId Int?    @map("season_mountain_id")
 
-  user_id            String?
-  user               users?            @relation("booking_user", fields: [user_id], references: [id])
-  created_by         String?
-  createdBy          users?            @relation("booking_created_by", fields: [created_by], references: [id])
-  season_mountain_id Int?
-  seasonMountain     season_mountains? @relation(fields: [season_mountain_id], references: [id])
+  createdBy String?  @map("created_by") @db.Uuid
+  status    Boolean  @default(true)
+  bookedAt  DateTime @default(now()) @map("booked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seasonMountain SeasonMountain? @relation(fields: [seasonMountainId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonMountainId], map: "bookings_user_id_season_mountain_id_key")
+  @@index([userId], map: "idx_bookings_user")
+  @@index([seasonMountainId], map: "idx_bookings_season_mountain")
+  @@map("bookings")
 }

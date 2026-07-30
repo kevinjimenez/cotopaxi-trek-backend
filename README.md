@@ -161,6 +161,93 @@ Respuesta esperada:
 
 El schema vive en `src/databases/prisma/schema.prisma` y la conexión se configura con la variable `DATABASE_URL` en tu `.env` (ver `.env.example`).
 
+### Relaciones: 1-a-1, 1-a-N y N-a-N
+
+**1-a-1** — ejemplo `users` ↔ `user_credentials`:
+
+```prisma
+model users {
+  id          String            @id @default(uuid(7))
+  credentials user_credentials? // lado "uno": opcional, no genera columna en la tabla
+}
+
+model user_credentials {
+  id      Int    @id @default(autoincrement())
+  user_id String @unique // @unique es lo que fuerza que sea 1-a-1 (sin esto sería 1-a-N)
+  user    users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+```
+
+La clave es el `@unique` sobre la FK (`user_id`): garantiza que cada `user` tenga como máximo una fila en `user_credentials`.
+
+**1-a-N** — ejemplo `companies` (1) → `seasons` (N):
+
+```prisma
+model companies {
+  id      String    @id @default(uuid(7))
+  seasons seasons[] // lado "muchos", campo virtual (no es columna)
+}
+
+model seasons {
+  id         Int        @id @default(autoincrement())
+  company_id String?
+  company    companies? @relation(fields: [company_id], references: [id]) // lado "uno"
+}
+```
+
+La FK (`company_id`) vive del lado "muchos" (`seasons`). El array `seasons[]` en `companies` es solo virtual, Prisma lo resuelve con una query aparte.
+
+**N-a-N** — ejemplo `users` ↔ `seasons` vía tabla puente `user_seasons`:
+
+```prisma
+model users {
+  id           String         @id @default(uuid(7))
+  user_seasons user_seasons[]
+}
+
+model seasons {
+  id           Int            @id @default(autoincrement())
+  user_seasons user_seasons[]
+}
+
+model user_seasons {
+  id        Int      @id @default(autoincrement())
+  status    Boolean  @default(true) // dato propio de la relación (ni de users ni de seasons)
+  user_id   String?
+  user      users?   @relation(fields: [user_id], references: [id])
+  season_id Int?
+  season    seasons? @relation(fields: [season_id], references: [id])
+}
+```
+
+Usamos una tabla puente **explícita** (`user_seasons`) en vez del atajo N-a-N implícito de Prisma (`users seasons[]` / `seasons users[]` sin modelo intermedio) porque necesitamos guardar datos propios de la relación — en este caso `status` — algo que el N-a-N implícito no permite.
+
+### Relaciones nombradas — dos FKs al mismo modelo
+
+Cuando un modelo tiene **más de una** relación hacia el mismo modelo destino, Prisma no puede adivinar cuál FK corresponde a cuál campo inverso — hay que nombrar cada relación con `@relation("nombre", ...)` para desambiguar. Ejemplo: `bookings` referencia a `users` dos veces (el cliente dueño de la reserva, y quién la registró en el sistema):
+
+```prisma
+model users {
+  id String @id @default(uuid(7))
+
+  bookings         bookings[] @relation("booking_user")
+  created_bookings bookings[] @relation("booking_created_by")
+}
+
+model bookings {
+  id     String  @id @default(uuid(7))
+  status Boolean @default(true)
+
+  user_id String?
+  user    users?  @relation("booking_user", fields: [user_id], references: [id]) // cliente dueño de la reserva
+
+  created_by String?
+  createdBy  users?  @relation("booking_created_by", fields: [created_by], references: [id]) // quién la registró
+}
+```
+
+El string dentro de `@relation("...")` (`"booking_user"`, `"booking_created_by"`) es una etiqueta arbitraria — no genera tabla ni columna, solo le dice a Prisma qué campo array (`bookings`/`created_bookings`) le corresponde a qué FK (`user_id`/`created_by`). Tiene que ser único por par de relaciones y coincidir en ambos lados; si solo hay **una** relación entre dos modelos (como `seasons` → `companies`), no hace falta nombrarla.
+
 Prisma tiene dos comandos que se confunden fácil porque casi siempre se usan juntos, pero resuelven cosas distintas:
 
 ### `prisma migrate dev` — cuando cambias el schema

@@ -13,6 +13,19 @@ export class UsersRepository {
     return database.user.findMany();
   }
 
+  findByUsernameWithCredential(username: string, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user.findFirst({
+      where: {
+        username,
+      },
+      include: {
+        credentials: true,
+      },
+    });
+  }
+
   findByIdWithCredential(id: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 

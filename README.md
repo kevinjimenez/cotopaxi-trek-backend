@@ -477,6 +477,109 @@ pnpm prisma generate
 
 Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
+## Autenticación (JWT)
+
+### `JWT_EXPIRES_IN` — qué tipo espera y qué valores acepta
+
+`AuthModule` registra `JwtModule.register({ signOptions: { expiresIn: envs.jwtExpiresIn } })`. `expiresIn` **no acepta un `string` cualquiera**: su tipo real (heredado de `jsonwebtoken` vía `@nestjs/jwt`, definido en el paquete [`ms`](https://www.npmjs.com/package/ms)) es:
+
+```ts
+type Unit =
+  | 'Years' | 'Year' | 'Yrs' | 'Yr' | 'Y'
+  | 'Weeks' | 'Week' | 'W'
+  | 'Days' | 'Day' | 'D'
+  | 'Hours' | 'Hour' | 'Hrs' | 'Hr' | 'H'
+  | 'Minutes' | 'Minute' | 'Mins' | 'Min' | 'M'
+  | 'Seconds' | 'Second' | 'Secs' | 'Sec' | 's'
+  | 'Milliseconds' | 'Millisecond' | 'Msecs' | 'Msec' | 'Ms';
+
+type UnitAnyCase = Unit | Uppercase<Unit> | Lowercase<Unit>;
+
+type StringValue =
+  | `${number}` // milisegundos, sin unidad: "3600000"
+  | `${number}${UnitAnyCase}` // sin espacio: "1d", "2h"
+  | `${number} ${UnitAnyCase}`; // con espacio: "1 day", "2 hours"
+```
+
+O directamente un `number` (interpretado siempre en **segundos**, no milisegundos — es la convención de `jsonwebtoken`, distinta a la de `ms`).
+
+Como `envs.jwtExpiresIn` viene de `process.env` tipado como `string` genérico en `envs.ts`, TS no puede verificar en tiempo de compilación que cumple el formato `StringValue`. Por eso en `auth.module.ts` se castea explícitamente:
+
+```ts
+import { JwtSignOptions } from '@nestjs/jwt';
+
+signOptions: {
+  expiresIn: envs.jwtExpiresIn as JwtSignOptions['expiresIn'],
+},
+```
+
+**Valores válidos para `JWT_EXPIRES_IN` en `.env`** (ejemplos, no exhaustivo — ver `Unit` arriba):
+
+| Ejemplo    | Significado         |
+| ---------- | -------------------- |
+| `60`       | 60 segundos (número puro → segundos) |
+| `"30s"`    | 30 segundos           |
+| `"15m"`    | 15 minutos            |
+| `"2h"`     | 2 horas               |
+| `"1d"`     | 1 día                 |
+| `"2 days"` | 2 días (forma larga, con espacio) |
+| `"1w"`     | 1 semana              |
+| `"1y"`     | 1 año                 |
+
+Nota: `ms`/`jsonwebtoken` no distinguen mayúsculas/minúsculas (`UnitAnyCase`), así que `"1D"`, `"1d"` y `"1 Day"` son equivalentes.
+
+### `@CurrentUser()` — leer el user autenticado en un resolver
+
+`CurrentUser` (`src/auth/decorators/current-user.decorator.ts`) es un `createParamDecorator` que lee `req.user` (lo que `JwtStrategy.validate()` devolvió) desde el contexto de GraphQL. Tiene **dos formas de uso**, según si quieres el objeto completo o un solo campo:
+
+**Caso A — sin argumento: devuelve el `AuthenticatedUser` completo**
+
+```ts
+@UseGuards(GqlAuthGuard)
+@Query(() => User, { name: 'me' })
+me(@CurrentUser() user: AuthenticatedUser) {
+  return user;
+}
+```
+
+Úsalo cuando el resolver expone un `@ObjectType()` (ej. `User`) y el cliente necesita elegir qué campos pedir. La query **sí lleva selection set** (llaves con los campos):
+
+```graphql
+query {
+  me {
+    id
+    username
+    role
+  }
+}
+```
+
+**Caso B — con argumento (`@CurrentUser('campo')`): devuelve solo ese campo**
+
+```ts
+@UseGuards(GqlAuthGuard)
+@Query(() => String, { name: 'me' })
+me(@CurrentUser('id') userId: string) {
+  return userId;
+}
+```
+
+Úsalo cuando solo necesitas un valor puntual (ej. el `id` para otra query/mutation) y el resolver expone un tipo escalar (`String`, `Boolean`, etc.), no un `ObjectType`. La query **no lleva selection set** — un escalar no tiene subcampos que elegir:
+
+```graphql
+query {
+  me
+}
+```
+
+**Regla práctica:** el tipo declarado en `@Query(() => X, ...)` y lo que devuelve la función deben coincidir. Si declaras `() => User` pero devuelves un `string` (o viceversa), no falla en compilación — falla en runtime cuando Apollo intenta resolver campos del `ObjectType` sobre un valor que no los tiene (ej. `Cannot return null for non-nullable field User.name`).
+
+En ambos casos hay que mandar el JWT del login en el header, si no la query falla con `Unauthorized` (por el `GqlAuthGuard`):
+
+```
+Authorization: Bearer <accessToken>
+```
+
 ## Run tests
 
 ```bash

@@ -1,5 +1,9 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { BcryptAdapter } from './adapters/bcrypt.adapter';
 
-@Global()
-@Module({})
+// @Global()
+@Module({
+  providers: [BcryptAdapter],
+  exports: [BcryptAdapter],
+})
 export class CommonModule {}

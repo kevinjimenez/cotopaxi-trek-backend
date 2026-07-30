@@ -37,4 +37,8 @@ export class UsersService {
   findByIdWithCredential(id: string) {
     return this.usersRepository.findByIdWithCredential(id);
   }
+
+  findByUsernameWithCredential(username: string) {
+    return this.usersRepository.findByUsernameWithCredential(username);
+  }
 }

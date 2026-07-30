@@ -1,13 +1,15 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import type { Request } from 'express';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { DatabasesModule } from './databases/databases.module';
 import { HealthModule } from './health/health.module';
-import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
 import { UserCredentialsModule } from './user-credentials/user-credentials.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { UserCredentialsModule } from './user-credentials/user-credentials.modul
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gpl'),
       sortSchema: true,
+      context: ({ req }: { req: Request }) => ({ req }),
     }),
     ConfigModule.forRoot(),
     HealthModule,
@@ -22,6 +25,7 @@ import { UserCredentialsModule } from './user-credentials/user-credentials.modul
     DatabasesModule,
     UsersModule,
     UserCredentialsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

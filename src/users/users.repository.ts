@@ -1,36 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from 'src/common/base/base.repository';
 import { DatabasesService } from 'src/databases/databases.service';
 import { Prisma } from 'src/databases/generated/prisma/client';
-import { CreateUserCredentialInput } from 'src/user-credentials/dto/create-user-credential.input';
+import { PrismaTransaction } from 'src/databases/prisma.types';
 import { UserCredentialsService } from 'src/user-credentials/user-credentials.service';
-import { CreateUserInput } from './dto/create-user.input';
 
 @Injectable()
-export class UsersRepository extends BaseRepository<Prisma.usersModel> {
+export class UsersRepository {
   constructor(
     private readonly databasesService: DatabasesService,
     private readonly userCredentialsService: UserCredentialsService,
-  ) {
-    super(databasesService, 'users');
+  ) {}
+
+  findAll(tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.users.findMany();
   }
 
-  createOne(payload: CreateUserInput) {
-    return this.databasesService.$transaction(async (tx) => {
-      const createdUser = await this.create(payload, tx);
+  findByIdWithCredential(id: string, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
 
-      const credential: CreateUserCredentialInput = {
-        user_id: createdUser.id,
-        password: payload.password,
-      };
-      await this.userCredentialsService.create(credential, tx);
-
-      return createdUser;
-    });
-  }
-
-  findOne(id: string) {
-    return this.databasesService.users.findUnique({
+    return database.users.findUnique({
       where: {
         id,
       },
@@ -38,5 +28,11 @@ export class UsersRepository extends BaseRepository<Prisma.usersModel> {
         credentials: true,
       },
     });
+  }
+
+  create(payload: Prisma.usersCreateInput, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.users.create({ data: payload });
   }
 }

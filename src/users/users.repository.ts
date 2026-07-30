@@ -10,13 +10,13 @@ export class UsersRepository {
   findAll(tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
-    return database.users.findMany();
+    return database.user.findMany();
   }
 
   findByIdWithCredential(id: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
-    return database.users.findUnique({
+    return database.user.findUnique({
       where: {
         id,
       },
@@ -26,9 +26,9 @@ export class UsersRepository {
     });
   }
 
-  create(payload: Prisma.usersCreateInput, tx?: PrismaTransaction) {
+  create(payload: Prisma.UserCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
-    return database.users.create({ data: payload });
+    return database.user.create({ data: payload });
   }
 }

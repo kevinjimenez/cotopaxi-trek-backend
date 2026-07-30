@@ -25,7 +25,7 @@ export class UsersService {
       const createdUser = await this.usersRepository.create(user, tx);
 
       const credential: CreateUserCredentialInput = {
-        user_id: createdUser.id,
+        userId: createdUser.id,
         password: password,
       };
       await this.userCredentialsService.create(credential, tx);

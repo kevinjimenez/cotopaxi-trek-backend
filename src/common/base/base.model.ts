@@ -4,8 +4,8 @@ import { Field, ObjectType } from '@nestjs/graphql';
 @ObjectType({ isAbstract: true })
 export abstract class BaseModel {
   @Field()
-  created_at: Date;
+  createdAt: Date;
 
   @Field()
-  updated_at: Date;
+  updatedAt: Date;
 }

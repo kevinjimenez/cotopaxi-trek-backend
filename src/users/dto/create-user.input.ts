@@ -22,9 +22,10 @@ export class CreateUserInput {
   @IsString()
   email?: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   @IsString()
-  phone: string;
+  phone?: string;
 
   @Field(() => RoleType, { nullable: true })
   @IsOptional()

@@ -102,7 +102,9 @@ model Season {
   userSeasons     UserSeason[]
   seasonMountains SeasonMountain[]
 
-  @@unique([companyId, year], map: "seasons_company_id_year_key")
+  // @@unique([companyId, year], map: "seasons_company_id_year_key")
+
+  @@unique([companyId, year, name], map: "seasons_company_id_year_name_key")
   @@index([companyId], map: "idx_seasons_company")
   @@map("seasons")
 }
@@ -112,7 +114,7 @@ model Mountain {
   companyId String? @map("company_id") @db.Uuid
 
   name                 String   @db.VarChar(100)
-  altitudeMeters       Int      @map("altitude_meters") @db.Integer
+  altitudeMeters       Float    @map("altitude_meters") @db.DoublePrecision
   location             String   @db.VarChar(150)
   generalDescription   String?  @map("general_description") @db.Text
   technicalDescription String?  @map("technical_description") @db.Text

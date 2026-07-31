@@ -13,7 +13,7 @@ export class SeasonsRepository {
     return database.season.findMany();
   }
 
-  create(payload: Prisma.SeasonCreateInput, tx?: PrismaTransaction) {
+  create(payload: Prisma.SeasonUncheckedCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.season.create({ data: payload });

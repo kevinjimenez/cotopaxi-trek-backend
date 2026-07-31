@@ -11,6 +11,7 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
 import { SeasonsModule } from './seasons/seasons.module';
+import { MountainsModule } from './mountains/mountains.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SeasonsModule } from './seasons/seasons.module';
     AuthModule,
     CompaniesModule,
     SeasonsModule,
+    MountainsModule,
   ],
 })
 export class AppModule {}

@@ -1,13 +1,30 @@
-import { ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { BaseModel } from 'src/common/base/base.model';
+import { Company } from 'src/companies/models/company.model';
 
 @ObjectType()
-export class Season {
-  id: string
-  companyId String? @map("company_id") @db.Uuid
+export class Season extends BaseModel {
+  @Field(() => Int)
+  id: number;
 
-  name: string
-  year: number
-  startDate DateTime @map("start_date") @db.Date
-  endDate   DateTime @map("end_date") @db.Date
-  isCurrent: string
+  @Field({ nullable: true })
+  companyId?: string;
+
+  @Field()
+  name: string;
+
+  @Field(() => Int)
+  year: number;
+
+  @Field(() => Date)
+  startDate: Date;
+
+  @Field(() => Date)
+  endDate: Date;
+
+  @Field()
+  isCurrent: boolean;
+
+  @Field(() => Company, { nullable: true })
+  company?: Company;
 }

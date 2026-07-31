@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaTransaction } from 'src/databases/prisma.types';
 import { CreateSeasonInput } from '../dto/create-season.input';
-import { UpdateSeasonInput } from '../dto/update-season.input';
+import { SeasonsRepository } from '../repositories/seasons.repository';
 
 @Injectable()
 export class SeasonsService {
-  create(createSeasonInput: CreateSeasonInput) {
-    return 'This action adds a new season';
+  constructor(private readonly seasonsRepository: SeasonsRepository) {}
+
+  create(payload: CreateSeasonInput) {
+    return this.seasonsRepository.create(payload);
   }
 
-  findAll() {
-    return `This action returns all seasons`;
+  findAll(tx?: PrismaTransaction) {
+    return this.seasonsRepository.findAll(tx);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} season`;
-  }
+  // findOne(id: number) {
+  //   return `This action returns a #${id} season`;
+  // }
 
-  update(id: number, updateSeasonInput: UpdateSeasonInput) {
-    return `This action updates a #${id} season`;
-  }
+  // update(id: number, updateSeasonInput: UpdateSeasonInput) {
+  //   return `This action updates a #${id} season`;
+  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} season`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} season`;
+  // }
 }

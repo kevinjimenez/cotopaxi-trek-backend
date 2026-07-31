@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { SeasonMountainsRepository } from './repositories/season-mountains.repository';
 import { SeasonsRepository } from './repositories/seasons.repository';
 import { SeasonMountainsResolver } from './resolvers/season-mountains.resolver';
 import { SeasonsResolver } from './resolvers/seasons.resolver';
@@ -12,6 +13,7 @@ import { SeasonsService } from './services/seasons.service';
     SeasonsRepository,
     SeasonMountainsResolver,
     SeasonMountainsService,
+    SeasonMountainsRepository,
   ],
 })
 export class SeasonsModule {}

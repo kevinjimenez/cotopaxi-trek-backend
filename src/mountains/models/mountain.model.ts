@@ -20,6 +20,12 @@ export class Mountain extends BaseModel {
   @Field()
   location: string;
 
+  @Field(() => Float, { nullable: true })
+  latitude?: number;
+
+  @Field(() => Float, { nullable: true })
+  longitude?: number;
+
   @Field({ nullable: true })
   generalDescription?: string;
 

@@ -1,6 +1,8 @@
 import { Field, Float, InputType } from '@nestjs/graphql';
 import {
   IsBoolean,
+  IsLatitude,
+  IsLongitude,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -25,6 +27,16 @@ export class CreateMountainInput {
   @Field()
   @IsString()
   location: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsLatitude()
+  latitude?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsLongitude()
+  longitude?: number;
 
   @Field({ nullable: true })
   @IsOptional()

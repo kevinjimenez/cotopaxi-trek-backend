@@ -1,4 +1,5 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Booking } from 'src/bookings/models/booking.model';
 import { BaseModel } from 'src/common/base/base.model';
 import { Mountain } from 'src/mountains/models/mountain.model';
 import { Season } from './season.model';
@@ -31,4 +32,7 @@ export class SeasonMountain extends BaseModel {
 
   @Field(() => Mountain, { nullable: true })
   mountain?: Mountain;
+
+  @Field(() => [Booking], { nullable: true })
+  bookings?: Booking[];
 }

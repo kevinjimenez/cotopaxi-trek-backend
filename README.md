@@ -510,6 +510,48 @@ pnpm prisma generate
 
 Nota relacionada: `nest build` compila a `dist/src/main.js` (no `dist/main.js`), por la estructura de carpetas del proyecto — el script `start:prod` ya apunta a la ruta correcta (`node dist/src/main`).
 
+### Seed de datos de prueba
+
+`src/databases/prisma/seed.ts` crea datos iniciales usando `upsert` en todo (seguro re-ejecutarlo las veces que quieras, no duplica nada):
+
+- 1 `Company` (`cotopaxi-trek`)
+- 3 `User` con sus `UserCredential` ya hasheadas: `superadmin` / `Superadmin123!`, `admin` / `Admin123!`, `jperez` (customer) / `Cliente123!`
+- 1 `Season` ("Temporada Alta" 2026)
+- 2 `Mountain` (Cotopaxi, Chimborazo) con `latitude`/`longitude`
+- 2 `SeasonMountain` (precio incluido) y sus `UserSeason`/`Booking` de ejemplo
+
+**Correrlo manualmente:**
+
+```bash
+pnpm db:seed
+```
+
+**Se corre automático** después de `prisma migrate reset` (y con `prisma db seed`), porque está registrado en `prisma.config.ts`:
+
+```ts
+migrations: {
+  path: 'src/databases/prisma/migrations',
+  seed: 'tsx src/databases/prisma/seed.ts',
+},
+```
+
+#### Troubleshooting: `Cannot find module './internal/class.js'` al correr el seed con `ts-node`
+
+El cliente generado por Prisma usa resolución de módulos `nodenext` — sus `require()` internos incluyen la extensión `.js` literal (ej. `require('./internal/class.js')`), algo que `tsc`/`nest build` sabe resolver contra los archivos `.ts` reales al compilar todo el proyecto junto. `ts-node` en modo transpile-per-file **no** replica esa resolución para los requires internos del cliente generado, así que truena con `MODULE_NOT_FOUND` apenas intentas importar `PrismaClient` fuera del proceso normal de Nest.
+
+**Solución:** usar `tsx` en vez de `ts-node` para correr scripts sueltos (como el seed) que importan el cliente de Prisma directamente — `tsx` (basado en esbuild) sí resuelve `nodenext`/`.js` correctamente sin necesitar tocar `tsconfig.json`.
+
+```bash
+pnpm add -D tsx
+```
+
+```json
+// package.json
+"scripts": {
+  "db:seed": "tsx src/databases/prisma/seed.ts"
+}
+```
+
 ## `type` vs `interface` — cuándo usar cada uno
 
 Regla práctica que seguimos en este repo:

@@ -39,7 +39,7 @@ export class CreateMountainInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
-  status: boolean;
+  status?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()

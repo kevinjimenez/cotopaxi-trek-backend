@@ -6,6 +6,10 @@ import { RoleType } from 'src/databases/generated/prisma/enums';
 export class CreateUserInput {
   @Field()
   @IsString()
+  companyId: string;
+
+  @Field()
+  @IsString()
   name: string;
 
   @Field()

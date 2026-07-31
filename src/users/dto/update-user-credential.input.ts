@@ -1,9 +1,11 @@
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
 import { IsInt, IsPositive } from 'class-validator';
-import { CreateMountainInput } from './create-mountain.input';
+import { CreateUserCredentialInput } from './create-user-credential.input';
 
 @InputType()
-export class UpdateMountainInput extends PartialType(CreateMountainInput) {
+export class UpdateUserCredentialInput extends PartialType(
+  CreateUserCredentialInput,
+) {
   @Field(() => Int)
   @IsInt()
   @IsPositive()

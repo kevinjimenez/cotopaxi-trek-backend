@@ -9,10 +9,10 @@ export class UserSeason extends BaseModel {
   id: number;
 
   @Field({ nullable: true })
-  userId: string;
+  userId?: string;
 
   @Field(() => Int, { nullable: true })
-  seasonId: number;
+  seasonId?: number;
 
   @Field()
   status: boolean;

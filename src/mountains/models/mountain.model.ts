@@ -1,6 +1,7 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 import { BaseModel } from 'src/common/base/base.model';
 import { Company } from 'src/companies/models/company.model';
+import { SeasonMountain } from 'src/seasons/models/season-mountain.model';
 
 @ObjectType()
 export class Mountain extends BaseModel {
@@ -13,11 +14,17 @@ export class Mountain extends BaseModel {
   @Field()
   name: string;
 
-  @Field(() => Int)
+  @Field(() => Float)
   altitudeMeters: number;
 
   @Field()
   location: string;
+
+  @Field(() => Float, { nullable: true })
+  latitude?: number;
+
+  @Field(() => Float, { nullable: true })
+  longitude?: number;
 
   @Field({ nullable: true })
   generalDescription?: string;
@@ -33,4 +40,7 @@ export class Mountain extends BaseModel {
 
   @Field(() => Company, { nullable: true })
   company?: Company;
+
+  @Field(() => [SeasonMountain], { nullable: true })
+  seasonMountains?: SeasonMountain[];
 }

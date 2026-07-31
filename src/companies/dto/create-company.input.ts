@@ -12,18 +12,18 @@ export class CreateCompanyInput {
   slug: string;
 
   @Field({ nullable: true })
-  @IsString()
   @IsOptional()
+  @IsString()
   logoUrl?: string;
 
   @Field({ nullable: true })
-  @IsString()
   @IsOptional()
+  @IsString()
   primaryColor?: string;
 
   @Field({ nullable: true })
-  @IsString()
   @IsOptional()
+  @IsString()
   instagram?: string;
 
   @Field()
@@ -31,7 +31,7 @@ export class CreateCompanyInput {
   whatsapp: string;
 
   @Field({ nullable: true })
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   status?: boolean;
 }

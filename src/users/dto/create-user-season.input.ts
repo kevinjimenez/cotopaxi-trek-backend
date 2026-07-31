@@ -1,7 +1,25 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 @InputType()
 export class CreateUserSeasonInput {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field()
+  @IsString()
+  userId: string;
+
+  @Field(() => Int)
+  @IsInt()
+  @IsPositive()
+  seasonId: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }

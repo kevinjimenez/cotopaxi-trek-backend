@@ -1,15 +1,20 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { SeasonMountainsService } from './season-mountains.service';
-import { SeasonMountain } from './entities/season-mountain.entity';
-import { CreateSeasonMountainInput } from './dto/create-season-mountain.input';
-import { UpdateSeasonMountainInput } from './dto/update-season-mountain.input';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { SeasonMountain } from '../../season-mountains/entities/season-mountain.entity';
+import { CreateSeasonMountainInput } from '../dto/create-season-mountain.input';
+import { UpdateSeasonMountainInput } from '../dto/update-season-mountain.input';
+import { SeasonMountainsService } from '../services/season-mountains.service';
 
 @Resolver(() => SeasonMountain)
 export class SeasonMountainsResolver {
-  constructor(private readonly seasonMountainsService: SeasonMountainsService) {}
+  constructor(
+    private readonly seasonMountainsService: SeasonMountainsService,
+  ) {}
 
   @Mutation(() => SeasonMountain)
-  createSeasonMountain(@Args('createSeasonMountainInput') createSeasonMountainInput: CreateSeasonMountainInput) {
+  createSeasonMountain(
+    @Args('createSeasonMountainInput')
+    createSeasonMountainInput: CreateSeasonMountainInput,
+  ) {
     return this.seasonMountainsService.create(createSeasonMountainInput);
   }
 
@@ -24,8 +29,14 @@ export class SeasonMountainsResolver {
   }
 
   @Mutation(() => SeasonMountain)
-  updateSeasonMountain(@Args('updateSeasonMountainInput') updateSeasonMountainInput: UpdateSeasonMountainInput) {
-    return this.seasonMountainsService.update(updateSeasonMountainInput.id, updateSeasonMountainInput);
+  updateSeasonMountain(
+    @Args('updateSeasonMountainInput')
+    updateSeasonMountainInput: UpdateSeasonMountainInput,
+  ) {
+    return this.seasonMountainsService.update(
+      updateSeasonMountainInput.id,
+      updateSeasonMountainInput,
+    );
   }
 
   @Mutation(() => SeasonMountain)

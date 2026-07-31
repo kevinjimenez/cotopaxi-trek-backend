@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CommonModule } from 'src/common/common.module';
 import { CredentialsRepository } from './repositories/credentials.repository';
+import { UserSeasonsRepository } from './repositories/user-seasons.repository';
 import { UsersRepository } from './repositories/users.repository';
 import { UserSeasonsResolver } from './resolvers/user-seasons.resolver';
 import { UsersResolver } from './resolvers/users.resolver';
@@ -16,12 +17,10 @@ import { UsersService } from './services/users.service';
     UsersRepository,
     CredentialsService,
     CredentialsRepository,
-  ],
-  exports: [
-    UsersService,
-    CredentialsService,
     UserSeasonsResolver,
     UserSeasonsService,
+    UserSeasonsRepository,
   ],
+  exports: [UsersService, CredentialsService],
 })
 export class UsersModule {}

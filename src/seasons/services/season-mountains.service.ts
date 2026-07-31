@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSeasonMountainInput } from './dto/create-season-mountain.input';
-import { UpdateSeasonMountainInput } from './dto/update-season-mountain.input';
+import { CreateSeasonMountainInput } from '../dto/create-season-mountain.input';
+import { UpdateSeasonMountainInput } from '../dto/update-season-mountain.input';
 
 @Injectable()
 export class SeasonMountainsService {

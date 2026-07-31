@@ -308,6 +308,39 @@ Se llama "unchecked" porque TypeScript no valida que ese id corresponda a una fi
 
 Mismo patrón aplica a `XUpdateInput` / `XUncheckedUpdateInput`.
 
+### Resolver → Service → Repository: quién habla con quién
+
+Regla que seguimos en todos los módulos (`users`, `companies`, `seasons`, etc.): **cada capa tiene un solo "idioma" que entiende, y no se salta capas.**
+
+- **Resolver** — recibe y devuelve tipos de GraphQL (`@InputType()` como `CreateSeasonInput`, `@ObjectType()` como `Season`). Es la puerta de entrada de la API; no sabe nada de Prisma.
+- **Service** — recibe el DTO del resolver y orquesta la lógica de negocio (transacciones, llamar a otros services, decidir qué pasa antes/después). Es el traductor entre el contrato de la API (DTO) y el contrato de persistencia (input de Prisma).
+- **Repository** — solo habla con `DatabasesService`/Prisma. Sus métodos están tipados con los inputs que genera Prisma (`Prisma.SeasonUncheckedCreateInput`, `Prisma.CompanyCreateInput`, etc.), **nunca** con un DTO de GraphQL.
+
+```ts
+// seasons.resolver.ts — habla GraphQL
+@Mutation(() => Season)
+createSeason(@Args('createSeasonInput') input: CreateSeasonInput) {
+  return this.seasonsService.create(input);
+}
+
+// seasons.service.ts — recibe el DTO, orquesta
+create(payload: CreateSeasonInput) {
+  return this.seasonsRepository.create(payload);
+}
+
+// seasons.repository.ts — solo conoce Prisma
+create(payload: Prisma.SeasonUncheckedCreateInput, tx?: PrismaTransaction) {
+  const database = tx ?? this.databasesService;
+  return database.season.create({ data: payload });
+}
+```
+
+**¿Por qué importa, si hoy el DTO y el input de Prisma tienen casi la misma forma?** Porque aunque *hoy* `CreateSeasonInput` sea estructuralmente compatible con `Prisma.SeasonUncheckedCreateInput` (y TypeScript te dejaría pasarlo directo sin quejarse), tipar el repository con el DTO en vez del tipo de Prisma rompe la dirección de la dependencia:
+
+1. **El repository no debería conocer GraphQL.** Si algún día necesitas ese mismo repository desde un seed script, un cron job, o un endpoint REST, no debería arrastrar `@Field()`/`class-validator` con él.
+2. **El tipo de Prisma se regenera solo cuando cambia el schema** (`prisma generate`). Si tipas el repository contra Prisma y mañana agregas/quitas una columna, TypeScript te marca el error de compilación en el momento. Un DTO escrito a mano no se entera solo de esos cambios.
+3. **El `Service` es el lugar diseñado para ese cambio futuro que seguro llega**: por ejemplo, sacar `companyId` del JWT del usuario autenticado en vez de confiar en lo que mandó el cliente en el input. Ese día solo tocas el `Service` — el `Repository` no cambia, porque su contrato (`Prisma.SeasonUncheckedCreateInput`) sigue siendo el mismo.
+
 ### Otros tipos generados que vas a usar seguido
 
 Además de `Create`/`Unchecked`, Prisma genera (por modelo) varios tipos más que vale la pena conocer:

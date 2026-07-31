@@ -1,0 +1,36 @@
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { BaseModel } from 'src/common/base/base.model';
+import { Company } from 'src/companies/models/company.model';
+
+@ObjectType()
+export class Mountain extends BaseModel {
+  @Field(() => Int)
+  id: number;
+
+  @Field({ nullable: true })
+  companyId?: string;
+
+  @Field()
+  name: string;
+
+  @Field(() => Int)
+  altitudeMeters: number;
+
+  @Field()
+  location: string;
+
+  @Field({ nullable: true })
+  generalDescription?: string;
+
+  @Field({ nullable: true })
+  technicalDescription?: string;
+
+  @Field()
+  status: boolean;
+
+  @Field({ nullable: true })
+  imageUrl?: string;
+
+  @Field(() => Company, { nullable: true })
+  company?: Company;
+}

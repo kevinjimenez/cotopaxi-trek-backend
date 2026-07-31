@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MountainsService } from './mountains.service';
-import { MountainsResolver } from './mountains.resolver';
+import { MountainsRepository } from './repositories/mountains.repository';
+import { MountainsResolver } from './resolvers/mountains.resolver';
+import { MountainsService } from './services/mountains.service';
 
 @Module({
-  providers: [MountainsResolver, MountainsService],
+  providers: [MountainsResolver, MountainsService, MountainsRepository],
 })
 export class MountainsModule {}

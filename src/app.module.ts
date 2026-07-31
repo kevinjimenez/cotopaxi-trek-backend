@@ -6,12 +6,12 @@ import type { Request } from 'express';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
+import { CompaniesModule } from './companies/companies.module';
 import { DatabasesModule } from './databases/databases.module';
 import { HealthModule } from './health/health.module';
-import { UsersModule } from './users/users.module';
-import { CompaniesModule } from './companies/companies.module';
-import { SeasonsModule } from './seasons/seasons.module';
 import { MountainsModule } from './mountains/mountains.module';
+import { SeasonsModule } from './seasons/seasons.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [

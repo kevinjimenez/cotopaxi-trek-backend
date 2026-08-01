@@ -18,4 +18,14 @@ export class MountainsRepository {
 
     return database.mountain.create({ data: payload });
   }
+
+  update(
+    id: number,
+    payload: Prisma.MountainUncheckedUpdateInput,
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.mountain.update({ where: { id }, data: payload });
+  }
 }

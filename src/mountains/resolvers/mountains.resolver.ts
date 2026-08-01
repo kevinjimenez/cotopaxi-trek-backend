@@ -1,5 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateMountainInput } from '../dto/create-mountain.input';
+import { UpdateMountainInput } from '../dto/update-mountain.input';
 import { Mountain } from '../models/mountain.model';
 import { MountainsService } from '../services/mountains.service';
 
@@ -12,6 +13,13 @@ export class MountainsResolver {
     @Args('createMountainInput') createMountainInput: CreateMountainInput,
   ) {
     return this.mountainsService.create(createMountainInput);
+  }
+
+  @Mutation(() => Mountain)
+  updateMountain(
+    @Args('updateMountainInput') updateMountainInput: UpdateMountainInput,
+  ) {
+    return this.mountainsService.update(updateMountainInput);
   }
 
   @Query(() => [Mountain], { name: 'mountains' })

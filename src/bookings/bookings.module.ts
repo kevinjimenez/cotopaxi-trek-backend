@@ -5,5 +5,6 @@ import { BookingsService } from './services/bookings.service';
 
 @Module({
   providers: [BookingsResolver, BookingsService, BookingsRepository],
+  exports: [BookingsService],
 })
 export class BookingsModule {}

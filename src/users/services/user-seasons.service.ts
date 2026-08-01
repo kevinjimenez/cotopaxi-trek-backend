@@ -7,8 +7,8 @@ import { UserSeasonsRepository } from '../repositories/user-seasons.repository';
 export class UserSeasonsService {
   constructor(private readonly userSeasonsRepository: UserSeasonsRepository) {}
 
-  create(payload: CreateUserSeasonInput) {
-    return this.userSeasonsRepository.create(payload);
+  create(payload: CreateUserSeasonInput, tx?: PrismaTransaction) {
+    return this.userSeasonsRepository.create(payload, tx);
   }
 
   findAll(tx?: PrismaTransaction) {

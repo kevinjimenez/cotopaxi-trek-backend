@@ -34,6 +34,10 @@ export class SeasonsService {
     return this.seasonsRepository.findAll(tx);
   }
 
+  findAllWithMountains(tx?: PrismaTransaction) {
+    return this.seasonsRepository.findAllWithMountains(tx);
+  }
+
   update(payload: UpdateSeasonInput, tx?: PrismaTransaction) {
     const { id, ...data } = payload;
     return this.seasonsRepository.update(id, data, tx);

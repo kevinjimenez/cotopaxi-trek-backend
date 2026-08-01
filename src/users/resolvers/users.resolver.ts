@@ -10,16 +10,16 @@ export class UsersResolver {
 
   // @RoleProtected(RoleType.superadmin, RoleType.admin)
   // @UseGuards(GqlAuthGuard, UserRoleGuard)
-  @Mutation(() => User)
-  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.usersService.create(createUserInput);
+  @Query(() => [User], { name: 'usersWithSeasons' })
+  findAllWithSeasons() {
+    return this.usersService.findAllWithSeasons();
   }
 
   // @RoleProtected(RoleType.superadmin, RoleType.admin)
   // @UseGuards(GqlAuthGuard, UserRoleGuard)
-  @Query(() => [User], { name: 'users' })
-  findAll() {
-    return this.usersService.findAll();
+  @Mutation(() => User)
+  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
+    return this.usersService.create(createUserInput);
   }
 
   // @RoleProtected(RoleType.superadmin, RoleType.admin)

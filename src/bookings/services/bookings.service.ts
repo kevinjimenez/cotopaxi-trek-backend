@@ -11,6 +11,10 @@ export class BookingsService {
     return this.bookingsRepository.create(payload);
   }
 
+  createMany(payload: CreateBookingInput[], tx?: PrismaTransaction) {
+    return this.bookingsRepository.createMany(payload, tx);
+  }
+
   findAll(tx?: PrismaTransaction) {
     return this.bookingsRepository.findAll(tx);
   }

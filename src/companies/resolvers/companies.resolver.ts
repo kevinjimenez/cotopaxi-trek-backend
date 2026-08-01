@@ -8,16 +8,16 @@ import { CompaniesService } from '../services/companies.service';
 export class CompaniesResolver {
   constructor(private readonly companiesService: CompaniesService) {}
 
+  @Query(() => [Company], { name: 'companies' })
+  findAll() {
+    return this.companiesService.findAll();
+  }
+
   @Mutation(() => Company)
   createCompany(
     @Args('createCompanyInput') createCompanyInput: CreateCompanyInput,
   ) {
     return this.companiesService.create(createCompanyInput);
-  }
-
-  @Query(() => [Company], { name: 'companies' })
-  findAll() {
-    return this.companiesService.findAll();
   }
 
   @Mutation(() => Company)

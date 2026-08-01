@@ -8,6 +8,11 @@ import { MountainsService } from '../services/mountains.service';
 export class MountainsResolver {
   constructor(private readonly mountainsService: MountainsService) {}
 
+  @Query(() => [Mountain], { name: 'mountains' })
+  findAll() {
+    return this.mountainsService.findAll();
+  }
+
   @Mutation(() => Mountain)
   createMountain(
     @Args('createMountainInput') createMountainInput: CreateMountainInput,
@@ -20,10 +25,5 @@ export class MountainsResolver {
     @Args('updateMountainInput') updateMountainInput: UpdateMountainInput,
   ) {
     return this.mountainsService.update(updateMountainInput);
-  }
-
-  @Query(() => [Mountain], { name: 'mountains' })
-  findAll() {
-    return this.mountainsService.findAll();
   }
 }

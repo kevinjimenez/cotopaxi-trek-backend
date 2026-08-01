@@ -22,6 +22,10 @@ export class UsersService {
     return this.usersRepository.findAll(tx);
   }
 
+  findAllWithSeasons(tx?: PrismaTransaction) {
+    return this.usersRepository.findAllWithSeasons(tx);
+  }
+
   create(payload: CreateUserInput) {
     const { seasonId, bookings, password, ...user } = payload;
 

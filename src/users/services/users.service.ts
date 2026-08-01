@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { BookingsService } from 'src/bookings/services/bookings.service';
 import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
-import { CreateUserCredentialInput } from '../dto/create-user-credential.input';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { UsersRepository } from '../repositories/users.repository';
 import { UserCredentialsService } from './user-credentials.service';
+import { UserSeasonsService } from './user-seasons.service';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +14,8 @@ export class UsersService {
     private readonly databasesService: DatabasesService,
     private readonly usersRepository: UsersRepository,
     private readonly userCredentialsService: UserCredentialsService,
+    private readonly userSeasonsService: UserSeasonsService,
+    private readonly bookingsService: BookingsService,
   ) {}
 
   findAll(tx?: PrismaTransaction) {
@@ -20,25 +23,39 @@ export class UsersService {
   }
 
   create(payload: CreateUserInput) {
-    const { password, ...user } = payload;
+    const { seasonId, bookings, password, ...user } = payload;
 
     return this.databasesService.$transaction(async (tx) => {
       const createdUser = await this.usersRepository.create(user, tx);
 
-      const credential: CreateUserCredentialInput = {
+      const credentialToCreate = {
         userId: createdUser.id,
         password: password,
       };
-      await this.userCredentialsService.create(credential, tx);
+      await this.userCredentialsService.create(credentialToCreate, tx);
+
+      const seasonToCreate = {
+        userId: createdUser.id,
+        seasonId,
+      };
+      await this.userSeasonsService.create(seasonToCreate, tx);
+
+      const bookingsToCreate = bookings.map((booking) => ({
+        ...booking,
+        userId: createdUser.id,
+      }));
+
+      await this.bookingsService.createMany(bookingsToCreate, tx);
 
       return createdUser;
     });
   }
 
   update(payload: UpdateUserInput) {
-    const { id, ...user } = payload;
+    // const { id, ...user } = payload;
 
-    return this.usersRepository.update(id, user);
+    // return this.usersRepository.update(id, user);
+    return this.usersRepository.findAll();
   }
 
   findByIdWithCredential(id: string) {

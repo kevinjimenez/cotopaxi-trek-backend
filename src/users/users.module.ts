@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BookingsModule } from 'src/bookings/bookings.module';
 import { CommonModule } from 'src/common/common.module';
 import { UserCredentialsRepository } from './repositories/user-credentials.repository';
 import { UserSeasonsRepository } from './repositories/user-seasons.repository';
@@ -10,7 +11,7 @@ import { UserSeasonsService } from './services/user-seasons.service';
 import { UsersService } from './services/users.service';
 
 @Module({
-  imports: [CommonModule],
+  imports: [CommonModule, BookingsModule],
   providers: [
     UsersResolver,
     UsersService,

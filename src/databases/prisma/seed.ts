@@ -148,7 +148,7 @@ async function main() {
     },
   });
 
-  await prisma.seasonMountain.upsert({
+  const seasonMountainChimborazo = await prisma.seasonMountain.upsert({
     where: {
       seasonId_mountainId: { seasonId: season.id, mountainId: chimborazo.id },
     },
@@ -184,6 +184,160 @@ async function main() {
     },
   });
 
+  await prisma.booking.upsert({
+    where: {
+      userId_seasonMountainId: {
+        userId: customer.id,
+        seasonMountainId: seasonMountainChimborazo.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: customer.id,
+      seasonMountainId: seasonMountainChimborazo.id,
+      createdBy: admin.id,
+    },
+  });
+
+  const seasonBaja = await prisma.season.upsert({
+    where: {
+      companyId_year_name: {
+        companyId: company.id,
+        year: 2026,
+        name: 'Temporada Baja',
+      },
+    },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: 'Temporada Baja',
+      year: 2026,
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-12-31'),
+      isCurrent: false,
+    },
+  });
+
+  const seasonMountainCotopaxiBaja = await prisma.seasonMountain.upsert({
+    where: {
+      seasonId_mountainId: {
+        seasonId: seasonBaja.id,
+        mountainId: cotopaxi.id,
+      },
+    },
+    update: {},
+    create: {
+      seasonId: seasonBaja.id,
+      mountainId: cotopaxi.id,
+      sortOrder: 1,
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-12-31'),
+      price: 320.0,
+    },
+  });
+
+  await prisma.seasonMountain.upsert({
+    where: {
+      seasonId_mountainId: {
+        seasonId: seasonBaja.id,
+        mountainId: chimborazo.id,
+      },
+    },
+    update: {},
+    create: {
+      seasonId: seasonBaja.id,
+      mountainId: chimborazo.id,
+      sortOrder: 2,
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-12-31'),
+      price: 390.0,
+    },
+  });
+
+  const mariana = await prisma.user.upsert({
+    where: {
+      companyId_username: { companyId: company.id, username: 'mgonzalez' },
+    },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: 'María',
+      lastname: 'González',
+      username: 'mgonzalez',
+      email: 'mgonzalez@example.com',
+      role: RoleType.customer,
+    },
+  });
+
+  await prisma.userCredential.upsert({
+    where: { userId: mariana.id },
+    update: {},
+    create: { userId: mariana.id, password: hash('Cliente123!') },
+  });
+
+  const luis = await prisma.user.upsert({
+    where: {
+      companyId_username: { companyId: company.id, username: 'lrodriguez' },
+    },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: 'Luis',
+      lastname: 'Rodríguez',
+      username: 'lrodriguez',
+      email: 'lrodriguez@example.com',
+      role: RoleType.customer,
+    },
+  });
+
+  await prisma.userCredential.upsert({
+    where: { userId: luis.id },
+    update: {},
+    create: { userId: luis.id, password: hash('Cliente123!') },
+  });
+
+  await prisma.userSeason.upsert({
+    where: { userId_seasonId: { userId: mariana.id, seasonId: season.id } },
+    update: {},
+    create: { userId: mariana.id, seasonId: season.id },
+  });
+
+  await prisma.userSeason.upsert({
+    where: { userId_seasonId: { userId: luis.id, seasonId: seasonBaja.id } },
+    update: {},
+    create: { userId: luis.id, seasonId: seasonBaja.id },
+  });
+
+  await prisma.booking.upsert({
+    where: {
+      userId_seasonMountainId: {
+        userId: mariana.id,
+        seasonMountainId: seasonMountainChimborazo.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: mariana.id,
+      seasonMountainId: seasonMountainChimborazo.id,
+      createdBy: admin.id,
+    },
+  });
+
+  await prisma.booking.upsert({
+    where: {
+      userId_seasonMountainId: {
+        userId: luis.id,
+        seasonMountainId: seasonMountainCotopaxiBaja.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: luis.id,
+      seasonMountainId: seasonMountainCotopaxiBaja.id,
+      createdBy: admin.id,
+    },
+  });
+
   console.log('Seed completo:');
   console.log({
     company: company.slug,
@@ -191,6 +345,8 @@ async function main() {
       superadmin: 'superadmin / Superadmin123!',
       admin: 'admin / Admin123!',
       customer: 'jperez / Cliente123!',
+      customer2: 'mgonzalez / Cliente123!',
+      customer3: 'lrodriguez / Cliente123!',
     },
   });
 }

@@ -11,8 +11,9 @@ import {
 @InputType()
 export class CreateBookingInput {
   @Field()
+  @IsOptional()
   @IsString()
-  userId: string;
+  userId?: string;
 
   @Field()
   @IsInt()

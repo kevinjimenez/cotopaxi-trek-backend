@@ -12,11 +12,6 @@ export class CreateSeasonMountainInput {
   @Field(() => Int)
   @IsInt()
   @IsPositive()
-  seasonId: number;
-
-  @Field(() => Int)
-  @IsInt()
-  @IsPositive()
   mountainId?: number;
 
   @Field(() => Int)

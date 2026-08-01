@@ -1,11 +1,15 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsDate,
   IsInt,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { CreateSeasonMountainInput } from './create-season-mountain.input';
 
 @InputType()
 export class CreateSeasonInput {
@@ -33,4 +37,10 @@ export class CreateSeasonInput {
   @IsOptional()
   @IsBoolean()
   isCurrent?: boolean;
+
+  @Field(() => [CreateSeasonMountainInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateSeasonMountainInput)
+  mountains: CreateSeasonMountainInput[];
 }

@@ -39,9 +39,37 @@ export class UsersRepository {
     });
   }
 
+  findAllWithSeasons(tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user.findMany({
+      include: {
+        userSeasons: {
+          include: {
+            season: {
+              include: {
+                seasonMountains: {
+                  include: {
+                    mountain: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   create(payload: Prisma.UserCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.user.create({ data: payload });
+  }
+
+  update(id: string, payload: Prisma.UserUpdateInput, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user.update({ where: { id }, data: payload });
   }
 }

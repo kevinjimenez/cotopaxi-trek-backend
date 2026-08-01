@@ -18,4 +18,14 @@ export class CompaniesRepository {
 
     return database.company.create({ data: payload });
   }
+
+  update(
+    id: string,
+    payload: Prisma.CompanyUpdateInput,
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.company.update({ where: { id }, data: payload });
+  }
 }

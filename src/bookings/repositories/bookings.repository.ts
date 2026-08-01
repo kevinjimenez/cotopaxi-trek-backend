@@ -18,4 +18,13 @@ export class BookingsRepository {
 
     return database.booking.create({ data: payload });
   }
+
+  createMany(
+    payload: Prisma.BookingUncheckedCreateInput[],
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.booking.createMany({ data: payload });
+  }
 }

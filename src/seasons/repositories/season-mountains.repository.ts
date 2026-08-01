@@ -21,4 +21,13 @@ export class SeasonMountainsRepository {
 
     return database.seasonMountain.create({ data: payload });
   }
+
+  createMany(
+    payload: Prisma.SeasonMountainUncheckedCreateInput[],
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.seasonMountain.createMany({ data: payload });
+  }
 }

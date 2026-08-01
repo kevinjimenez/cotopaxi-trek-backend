@@ -18,4 +18,14 @@ export class SeasonsRepository {
 
     return database.season.create({ data: payload });
   }
+
+  update(
+    id: number,
+    payload: Prisma.SeasonUncheckedUpdateInput,
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.season.update({ where: { id }, data: payload });
+  }
 }

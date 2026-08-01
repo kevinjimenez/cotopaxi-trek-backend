@@ -8,16 +8,21 @@ import { SeasonsService } from '../services/seasons.service';
 export class SeasonsResolver {
   constructor(private readonly seasonsService: SeasonsService) {}
 
+  @Query(() => [Season], { name: 'seasons' })
+  findAll() {
+    return this.seasonsService.findAll();
+  }
+
+  @Query(() => [Season], { name: 'seasonsWithMountains' })
+  findAllWithMountains() {
+    return this.seasonsService.findAllWithMountains();
+  }
+
   @Mutation(() => Season)
   createSeason(
     @Args('createSeasonInput') createSeasonInput: CreateSeasonInput,
   ) {
     return this.seasonsService.create(createSeasonInput);
-  }
-
-  @Query(() => [Season], { name: 'seasons' })
-  findAll() {
-    return this.seasonsService.findAll();
   }
 
   @Mutation(() => Season)

@@ -15,4 +15,14 @@ export class UserCredentialsRepository {
 
     return database.userCredential.create({ data: payload });
   }
+
+  updateByUserId(
+    userId: string,
+    payload: Prisma.UserCredentialUncheckedUpdateInput,
+    tx?: PrismaTransaction,
+  ) {
+    const database = tx ?? this.databasesService;
+
+    return database.userCredential.update({ where: { userId }, data: payload });
+  }
 }

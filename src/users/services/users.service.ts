@@ -3,6 +3,7 @@ import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
 import { CreateUserCredentialInput } from '../dto/create-user-credential.input';
 import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserInput } from '../dto/update-user.input';
 import { UsersRepository } from '../repositories/users.repository';
 import { UserCredentialsService } from './user-credentials.service';
 
@@ -11,7 +12,7 @@ export class UsersService {
   constructor(
     private readonly databasesService: DatabasesService,
     private readonly usersRepository: UsersRepository,
-    private readonly uUserCredentialsService: UserCredentialsService,
+    private readonly userCredentialsService: UserCredentialsService,
   ) {}
 
   findAll(tx?: PrismaTransaction) {
@@ -28,10 +29,16 @@ export class UsersService {
         userId: createdUser.id,
         password: password,
       };
-      await this.uUserCredentialsService.create(credential, tx);
+      await this.userCredentialsService.create(credential, tx);
 
       return createdUser;
     });
+  }
+
+  update(payload: UpdateUserInput) {
+    const { id, ...user } = payload;
+
+    return this.usersRepository.update(id, user);
   }
 
   findByIdWithCredential(id: string) {

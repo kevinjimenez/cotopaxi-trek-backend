@@ -44,4 +44,10 @@ export class UsersRepository {
 
     return database.user.create({ data: payload });
   }
+
+  update(id: string, payload: Prisma.UserUpdateInput, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user.update({ where: { id }, data: payload });
+  }
 }

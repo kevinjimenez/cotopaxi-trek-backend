@@ -20,7 +20,8 @@ export class AuthService {
   ) {}
 
   async login({ password, username }: LoginInput) {
-    const user = await this.usersService.findByUsernameWithCredential(username);
+    const user =
+      await this.usersService.findByIdentifierWithCredential(username);
 
     if (!user || !user.credentials) {
       throw new UnauthorizedException('');

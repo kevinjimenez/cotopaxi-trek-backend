@@ -7,10 +7,29 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class UserSeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAll(tx?: PrismaTransaction) {
+  findbyUserIdWithSeason(userId: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
-    return database.userSeason.findMany();
+    return database.userSeason.findFirst({
+      where: {
+        userId,
+      },
+      include: {
+        season: {
+          include: {
+            seasonMountains: {
+              include: {
+                season: true,
+                mountain: true,
+                bookings: {
+                  where: { userId },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   create(

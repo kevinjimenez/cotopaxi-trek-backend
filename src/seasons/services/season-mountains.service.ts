@@ -9,11 +9,7 @@ export class SeasonMountainsService {
     private readonly seasonMountainsRepository: SeasonMountainsRepository,
   ) {}
 
-  create(payload: CreateSeasonMountainInput) {
-    return this.seasonMountainsRepository.create(payload);
-  }
-
-  findAll(tx?: PrismaTransaction) {
-    return this.seasonMountainsRepository.findAll(tx);
+  createMany(payload: CreateSeasonMountainInput[], tx?: PrismaTransaction) {
+    return this.seasonMountainsRepository.createMany(payload, tx);
   }
 }

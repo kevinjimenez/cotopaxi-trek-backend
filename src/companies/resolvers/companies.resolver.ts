@@ -1,6 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateCompanyInput } from '../dto/create-company.input';
-import { UpdateCompanyInput } from '../dto/update-company.input';
 import { Company } from '../models/company.model';
 import { CompaniesService } from '../services/companies.service';
 
@@ -19,21 +18,4 @@ export class CompaniesResolver {
   ) {
     return this.companiesService.create(createCompanyInput);
   }
-
-  @Mutation(() => Company)
-  updateCompany(
-    @Args('updateCompanyInput') updateCompanyInput: UpdateCompanyInput,
-  ) {
-    return this.companiesService.update(updateCompanyInput);
-  }
-
-  // @Query(() => Company, { name: 'company' })
-  // findOne(@Args('id', { type: () => Int }) id: number) {
-  //   return this.companiesService.findOne(id);
-  // }
-
-  // @Mutation(() => Company)
-  // removeCompany(@Args('id', { type: () => Int }) id: number) {
-  //   return this.companiesService.remove(id);
-  // }
 }

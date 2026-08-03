@@ -1,14 +1,15 @@
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { envs } from './common/config/envs';
-import { Logger, ValidationPipe } from '@nestjs/common';
 
 const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors();
   app.use(compression());
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CreateUserSeasonInput } from '../dto/create-user-season.input';
+import { AssignUserSeasonInput } from '../dto/assign-user-season.input';
 import { UserSeason } from '../models/user-season.model';
 import { UserSeasonsService } from '../services/user-seasons.service';
 
@@ -8,14 +8,14 @@ export class UserSeasonsResolver {
   constructor(private readonly userSeasonsService: UserSeasonsService) {}
 
   @Mutation(() => UserSeason)
-  createUserSeason(
-    @Args('createUserSeasonInput') createUserSeasonInput: CreateUserSeasonInput,
+  assignUserSeason(
+    @Args('ssignUserSeasonInput') assignUserSeasonInput: AssignUserSeasonInput,
   ) {
-    return this.userSeasonsService.create(createUserSeasonInput);
+    return this.userSeasonsService.asisgn(assignUserSeasonInput);
   }
 
-  @Query(() => [UserSeason], { name: 'userSeasons' })
-  findAll() {
-    return this.userSeasonsService.findAll();
+  @Query(() => UserSeason, { name: 'userSeasons' })
+  findbyUserIdWithSeason(@Args('userId') userId: string) {
+    return this.userSeasonsService.findbyUserIdWithSeason(userId);
   }
 }

@@ -1,6 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateUserInput } from '../dto/create-user.input';
-import { UpdateUserInput } from '../dto/update-user.input';
 import { User } from '../models/user.model';
 import { UsersService } from '../services/users.service';
 
@@ -29,8 +28,8 @@ export class UsersResolver {
   //   return this.usersService.findByIdWithCredential(id);
   // }
 
-  @Mutation(() => User)
-  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
-    return this.usersService.update(updateUserInput);
-  }
+  // @Mutation(() => User)
+  // updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+  //   return this.usersService.update(updateUserInput);
+  // }
 }

@@ -13,25 +13,22 @@ export class UsersRepository {
     return database.user.findMany();
   }
 
-  findByUsernameWithCredential(username: string, tx?: PrismaTransaction) {
+  findByIdentifierWithCredential(identifier: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.user.findFirst({
       where: {
-        username,
-      },
-      include: {
-        credentials: true,
-      },
-    });
-  }
-
-  findByIdWithCredential(id: string, tx?: PrismaTransaction) {
-    const database = tx ?? this.databasesService;
-
-    return database.user.findUnique({
-      where: {
-        id,
+        OR: [
+          {
+            id: identifier,
+          },
+          {
+            username: identifier,
+          },
+          {
+            email: identifier,
+          },
+        ],
       },
       include: {
         credentials: true,

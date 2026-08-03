@@ -9,8 +9,8 @@ import { UserSeasonsRepository } from '../repositories/user-seasons.repository';
 @Injectable()
 export class UserSeasonsService {
   constructor(
-    private readonly databasesService: DatabasesService,
     private readonly userSeasonsRepository: UserSeasonsRepository,
+    private readonly databasesService: DatabasesService,
     private readonly bookingsService: BookingsService,
   ) {}
 

@@ -17,10 +17,6 @@ export class UsersService {
     private readonly bookingsService: BookingsService,
   ) {}
 
-  findAll(tx?: PrismaTransaction) {
-    return this.usersRepository.findAll(tx);
-  }
-
   findByIdentifierWithCredential(identifier: string, tx?: PrismaTransaction) {
     return this.usersRepository.findByIdentifierWithCredential(identifier, tx);
   }

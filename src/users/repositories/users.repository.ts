@@ -7,12 +7,6 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class UsersRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAll(tx?: PrismaTransaction) {
-    const database = tx ?? this.databasesService;
-
-    return database.user.findMany();
-  }
-
   findByIdentifierWithCredential(identifier: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
@@ -62,11 +56,5 @@ export class UsersRepository {
     const database = tx ?? this.databasesService;
 
     return database.user.create({ data: payload });
-  }
-
-  update(id: string, payload: Prisma.UserUpdateInput, tx?: PrismaTransaction) {
-    const database = tx ?? this.databasesService;
-
-    return database.user.update({ where: { id }, data: payload });
   }
 }

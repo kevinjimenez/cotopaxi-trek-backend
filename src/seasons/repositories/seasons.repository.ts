@@ -18,7 +18,6 @@ export class SeasonsRepository {
 
     return database.season.findMany({
       include: {
-        // company: true,
         seasonMountains: {
           include: {
             mountain: true,

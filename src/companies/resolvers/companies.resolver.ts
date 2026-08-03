@@ -26,14 +26,4 @@ export class CompaniesResolver {
   ) {
     return this.companiesService.update(updateCompanyInput);
   }
-
-  // @Query(() => Company, { name: 'company' })
-  // findOne(@Args('id', { type: () => Int }) id: number) {
-  //   return this.companiesService.findOne(id);
-  // }
-
-  // @Mutation(() => Company)
-  // removeCompany(@Args('id', { type: () => Int }) id: number) {
-  //   return this.companiesService.remove(id);
-  // }
 }

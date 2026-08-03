@@ -13,7 +13,7 @@ export class CompaniesRepository {
     return database.company.findMany();
   }
 
-  create(payload: Prisma.CompanyCreateInput, tx?: PrismaTransaction) {
+  create(payload: Prisma.CompanyUncheckedCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.company.create({ data: payload });
@@ -21,7 +21,7 @@ export class CompaniesRepository {
 
   update(
     id: string,
-    payload: Prisma.CompanyUpdateInput,
+    payload: Prisma.CompanyUncheckedUpdateInput,
     tx?: PrismaTransaction,
   ) {
     const database = tx ?? this.databasesService;

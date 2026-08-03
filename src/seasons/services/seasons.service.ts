@@ -42,8 +42,4 @@ export class SeasonsService {
     const { id, ...data } = payload;
     return this.seasonsRepository.update(id, data, tx);
   }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} season`;
-  // }
 }

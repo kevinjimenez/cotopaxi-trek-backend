@@ -7,12 +7,6 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class SeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAll(tx?: PrismaTransaction) {
-    const database = tx ?? this.databasesService;
-
-    return database.season.findMany();
-  }
-
   findAllWithMountains(tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
@@ -31,15 +25,5 @@ export class SeasonsRepository {
     const database = tx ?? this.databasesService;
 
     return database.season.create({ data: payload });
-  }
-
-  update(
-    id: number,
-    payload: Prisma.SeasonUncheckedUpdateInput,
-    tx?: PrismaTransaction,
-  ) {
-    const database = tx ?? this.databasesService;
-
-    return database.season.update({ where: { id }, data: payload });
   }
 }

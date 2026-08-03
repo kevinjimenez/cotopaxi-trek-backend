@@ -2,16 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
 import { CreateSeasonInput } from '../dto/create-season.input';
-import { UpdateSeasonInput } from '../dto/update-season.input';
-import { SeasonMountainsRepository } from '../repositories/season-mountains.repository';
 import { SeasonsRepository } from '../repositories/seasons.repository';
+import { SeasonMountainsService } from './season-mountains.service';
 
 @Injectable()
 export class SeasonsService {
   constructor(
-    private readonly databasesService: DatabasesService,
     private readonly seasonsRepository: SeasonsRepository,
-    private readonly seasonMountainsRepository: SeasonMountainsRepository,
+    private readonly databasesService: DatabasesService,
+    private readonly seasonMountainsService: SeasonMountainsService,
   ) {}
 
   create(payload: CreateSeasonInput) {
@@ -24,22 +23,13 @@ export class SeasonsService {
         ...mountain,
       }));
 
-      await this.seasonMountainsRepository.createMany(mountainsToCreate);
+      await this.seasonMountainsService.createMany(mountainsToCreate);
 
       return createdSeason;
     });
   }
 
-  findAll(tx?: PrismaTransaction) {
-    return this.seasonsRepository.findAll(tx);
-  }
-
   findAllWithMountains(tx?: PrismaTransaction) {
     return this.seasonsRepository.findAllWithMountains(tx);
-  }
-
-  update(payload: UpdateSeasonInput, tx?: PrismaTransaction) {
-    const { id, ...data } = payload;
-    return this.seasonsRepository.update(id, data, tx);
   }
 }

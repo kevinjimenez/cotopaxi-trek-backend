@@ -254,6 +254,61 @@ async function main() {
     },
   });
 
+  const season2025 = await prisma.season.upsert({
+    where: {
+      companyId_year_name: {
+        companyId: company.id,
+        year: 2025,
+        name: 'Temporada 2025',
+      },
+    },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: 'Temporada 2025',
+      year: 2025,
+      startDate: new Date('2025-01-01'),
+      endDate: new Date('2025-12-31'),
+      isCurrent: false,
+    },
+  });
+
+  await prisma.seasonMountain.upsert({
+    where: {
+      seasonId_mountainId: {
+        seasonId: season2025.id,
+        mountainId: cotopaxi.id,
+      },
+    },
+    update: {},
+    create: {
+      seasonId: season2025.id,
+      mountainId: cotopaxi.id,
+      sortOrder: 1,
+      startDate: new Date('2025-01-01'),
+      endDate: new Date('2025-12-31'),
+      price: 300.0,
+    },
+  });
+
+  await prisma.seasonMountain.upsert({
+    where: {
+      seasonId_mountainId: {
+        seasonId: season2025.id,
+        mountainId: chimborazo.id,
+      },
+    },
+    update: {},
+    create: {
+      seasonId: season2025.id,
+      mountainId: chimborazo.id,
+      sortOrder: 2,
+      startDate: new Date('2025-01-01'),
+      endDate: new Date('2025-12-31'),
+      price: 360.0,
+    },
+  });
+
   const mariana = await prisma.user.upsert({
     where: {
       companyId_username: { companyId: company.id, username: 'mgonzalez' },
@@ -305,7 +360,47 @@ async function main() {
   await prisma.userSeason.upsert({
     where: { userId_seasonId: { userId: luis.id, seasonId: seasonBaja.id } },
     update: {},
-    create: { userId: luis.id, seasonId: seasonBaja.id },
+    create: { userId: luis.id, seasonId: seasonBaja.id, status: false },
+  });
+
+  const carlos = await prisma.user.upsert({
+    where: {
+      companyId_username: { companyId: company.id, username: 'ctorres' },
+    },
+    update: {},
+    create: {
+      companyId: company.id,
+      name: 'Carlos',
+      lastname: 'Torres',
+      username: 'ctorres',
+      email: 'ctorres@example.com',
+      role: RoleType.customer,
+    },
+  });
+
+  await prisma.userCredential.upsert({
+    where: { userId: carlos.id },
+    update: {},
+    create: { userId: carlos.id, password: hash('Cliente123!') },
+  });
+
+  // Carlos queda vinculado a más de 2 temporadas, pero solo una (Alta) está activa.
+  await prisma.userSeason.upsert({
+    where: { userId_seasonId: { userId: carlos.id, seasonId: season.id } },
+    update: {},
+    create: { userId: carlos.id, seasonId: season.id },
+  });
+
+  await prisma.userSeason.upsert({
+    where: { userId_seasonId: { userId: carlos.id, seasonId: seasonBaja.id } },
+    update: {},
+    create: { userId: carlos.id, seasonId: seasonBaja.id, status: false },
+  });
+
+  await prisma.userSeason.upsert({
+    where: { userId_seasonId: { userId: carlos.id, seasonId: season2025.id } },
+    update: {},
+    create: { userId: carlos.id, seasonId: season2025.id, status: false },
   });
 
   await prisma.booking.upsert({
@@ -347,6 +442,7 @@ async function main() {
       customer: 'jperez / Cliente123!',
       customer2: 'mgonzalez / Cliente123!',
       customer3: 'lrodriguez / Cliente123!',
+      customer4: 'ctorres / Cliente123! (vinculado a 3 temporadas, solo Alta activa)',
     },
   });
 }

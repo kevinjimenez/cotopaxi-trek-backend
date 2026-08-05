@@ -433,9 +433,43 @@ async function main() {
     },
   });
 
+  const chimboTours = await prisma.company.upsert({
+    where: { slug: 'chimbo-tours' },
+    update: {},
+    create: {
+      name: 'Chimbo Tours',
+      slug: 'chimbo-tours',
+      whatsapp: '+593987654321',
+      status: true,
+    },
+  });
+
+  const andesXtreme = await prisma.company.upsert({
+    where: { slug: 'andes-xtreme' },
+    update: {},
+    create: {
+      name: 'Andes Xtreme',
+      slug: 'andes-xtreme',
+      whatsapp: '+593976543210',
+      status: false,
+    },
+  });
+
+  const volcanTrek = await prisma.company.upsert({
+    where: { slug: 'volcan-trek' },
+    update: {},
+    create: {
+      name: 'Volcán Trek',
+      slug: 'volcan-trek',
+      whatsapp: '+593965432109',
+      status: true,
+    },
+  });
+
   console.log('Seed completo:');
   console.log({
     company: company.slug,
+    otherCompanies: [chimboTours.slug, andesXtreme.slug, volcanTrek.slug],
     users: {
       superadmin: 'superadmin / Superadmin123!',
       admin: 'admin / Admin123!',

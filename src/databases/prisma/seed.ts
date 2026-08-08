@@ -1,5 +1,5 @@
-import * as bcrypt from 'bcrypt';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcrypt';
 import { envs } from '../../common/config/envs';
 import { PrismaClient } from '../generated/prisma/client';
 import { RoleType } from '../generated/prisma/enums';
@@ -9,7 +9,23 @@ const prisma = new PrismaClient({ adapter });
 
 const hash = (plain: string) => bcrypt.hashSync(plain, 10);
 
+async function clear() {
+  console.log('Borrando data existente...');
+
+  // Orden importante: hijos primero, padres después (respetando las FKs).
+  await prisma.booking.deleteMany();
+  await prisma.userSeason.deleteMany();
+  await prisma.seasonMountain.deleteMany();
+  await prisma.userCredential.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.season.deleteMany();
+  await prisma.mountain.deleteMany();
+  await prisma.company.deleteMany();
+}
+
 async function main() {
+  await clear();
+
   console.log('Seeding...');
 
   const company = await prisma.company.upsert({
@@ -34,6 +50,7 @@ async function main() {
       lastname: 'Admin',
       username: 'superadmin',
       email: 'superadmin@cotopaxitrek.com',
+      phone: '+593990000001',
       role: RoleType.superadmin,
     },
   });
@@ -53,6 +70,7 @@ async function main() {
       lastname: 'Zambrano',
       username: 'admin',
       email: 'admin@cotopaxitrek.com',
+      phone: '+593990000002',
       role: RoleType.admin,
     },
   });
@@ -74,6 +92,7 @@ async function main() {
       lastname: 'Pérez',
       username: 'jperez',
       email: 'jperez@example.com',
+      phone: '+593990000003',
       role: RoleType.customer,
     },
   });
@@ -99,7 +118,7 @@ async function main() {
       year: 2026,
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-06-30'),
-      isCurrent: true,
+      isCurrent: false,
     },
   });
 
@@ -114,7 +133,7 @@ async function main() {
       location: 'Provincia de Cotopaxi, Ecuador',
       latitude: -0.68582,
       longitude: -78.438128,
-      status: true,
+      status: false,
     },
   });
 
@@ -214,7 +233,7 @@ async function main() {
       year: 2026,
       startDate: new Date('2026-07-01'),
       endDate: new Date('2026-12-31'),
-      isCurrent: false,
+      isCurrent: true,
     },
   });
 
@@ -320,6 +339,7 @@ async function main() {
       lastname: 'González',
       username: 'mgonzalez',
       email: 'mgonzalez@example.com',
+      phone: '+593990000004',
       role: RoleType.customer,
     },
   });
@@ -341,6 +361,7 @@ async function main() {
       lastname: 'Rodríguez',
       username: 'lrodriguez',
       email: 'lrodriguez@example.com',
+      phone: '+593990000005',
       role: RoleType.customer,
     },
   });
@@ -374,6 +395,7 @@ async function main() {
       lastname: 'Torres',
       username: 'ctorres',
       email: 'ctorres@example.com',
+      phone: '+593990000006',
       role: RoleType.customer,
     },
   });
@@ -476,7 +498,8 @@ async function main() {
       customer: 'jperez / Cliente123!',
       customer2: 'mgonzalez / Cliente123!',
       customer3: 'lrodriguez / Cliente123!',
-      customer4: 'ctorres / Cliente123! (vinculado a 3 temporadas, solo Alta activa)',
+      customer4:
+        'ctorres / Cliente123! (vinculado a 3 temporadas, solo Alta activa)',
     },
   });
 }

@@ -8,8 +8,15 @@ export class SeasonsResolver {
   constructor(private readonly seasonsService: SeasonsService) {}
 
   @Query(() => [Season], { name: 'seasonsWithMountains' })
-  findAllWithMountains() {
-    return this.seasonsService.findAllWithMountains();
+  findAllWithMountains(
+    @Args('status', { type: () => Boolean, nullable: true }) status?: boolean,
+  ) {
+    return this.seasonsService.findAllWithMountains(status);
+  }
+
+  @Query(() => Season, { name: 'currentSeason', nullable: true })
+  findCurrent() {
+    return this.seasonsService.findCurrent();
   }
 
   @Mutation(() => Season)

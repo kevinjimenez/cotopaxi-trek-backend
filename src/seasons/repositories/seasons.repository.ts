@@ -7,10 +7,26 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class SeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAllWithMountains(tx?: PrismaTransaction) {
+  findAllWithMountains(isCurrent?: boolean, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.season.findMany({
+      where: isCurrent === undefined ? undefined : { isCurrent },
+      include: {
+        seasonMountains: {
+          include: {
+            mountain: true,
+          },
+        },
+      },
+    });
+  }
+
+  findCurrent(tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.season.findFirst({
+      where: { isCurrent: true },
       include: {
         seasonMountains: {
           include: {

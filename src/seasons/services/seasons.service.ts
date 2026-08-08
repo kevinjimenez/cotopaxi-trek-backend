@@ -29,7 +29,11 @@ export class SeasonsService {
     });
   }
 
-  findAllWithMountains(tx?: PrismaTransaction) {
-    return this.seasonsRepository.findAllWithMountains(tx);
+  findAllWithMountains(isCurrent?: boolean, tx?: PrismaTransaction) {
+    return this.seasonsRepository.findAllWithMountains(isCurrent, tx);
+  }
+
+  findCurrent(tx?: PrismaTransaction) {
+    return this.seasonsRepository.findCurrent(tx);
   }
 }

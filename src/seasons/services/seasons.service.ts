@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { QueryParamsDto } from 'src/common/dtos/query-params.dto';
 import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
 import { CreateSeasonInput } from '../dto/create-season.input';
@@ -29,8 +30,11 @@ export class SeasonsService {
     });
   }
 
-  findAllWithMountains(isCurrent?: boolean, tx?: PrismaTransaction) {
-    return this.seasonsRepository.findAllWithMountains(isCurrent, tx);
+  findAllWithMountains(
+    { status }: QueryParamsDto = {},
+    tx?: PrismaTransaction,
+  ) {
+    return this.seasonsRepository.findAllWithMountains(status, tx);
   }
 
   findCurrent(tx?: PrismaTransaction) {

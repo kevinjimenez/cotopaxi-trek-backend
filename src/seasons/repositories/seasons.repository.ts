@@ -11,7 +11,9 @@ export class SeasonsRepository {
     const database = tx ?? this.databasesService;
 
     return database.season.findMany({
-      where: isCurrent === undefined ? undefined : { isCurrent },
+      where: {
+        ...(isCurrent !== undefined && { isCurrent }),
+      },
       include: {
         seasonMountains: {
           include: {

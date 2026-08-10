@@ -8,6 +8,9 @@ interface EnvVars {
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
+  PAGINATION_LIMIT: number;
+  PAGINATION_MAX: number;
+  PAGINATION_PAGE: number;
 }
 
 const envsSchema = joi
@@ -17,6 +20,9 @@ const envsSchema = joi
     DATABASE_URL: joi.string().required(),
     JWT_SECRET: joi.string().required(),
     JWT_EXPIRES_IN: joi.string().required(),
+    PAGINATION_LIMIT: joi.number().required(),
+    PAGINATION_MAX: joi.number().required(),
+    PAGINATION_PAGE: joi.number().required(),
   })
   .unknown(true);
 
@@ -39,4 +45,7 @@ export const envs = {
   databaseUrl: envVars.DATABASE_URL,
   jwtSecret: envVars.JWT_SECRET,
   jwtExpiresIn: envVars.JWT_EXPIRES_IN,
+  paginationLimit: envVars.PAGINATION_LIMIT,
+  paginationMax: envVars.PAGINATION_MAX,
+  paginationPage: envVars.PAGINATION_PAGE,
 };

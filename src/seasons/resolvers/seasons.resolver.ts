@@ -10,14 +10,14 @@ export class SeasonsResolver {
 
   @Query(() => [Season], { name: 'seasonsWithMountains' })
   findAllWithMountains(
-    @Args('params', { nullable: true }) params?: QueryParamsDto,
+    @Args('params', { nullable: true }) params: QueryParamsDto,
   ) {
     return this.seasonsService.findAllWithMountains(params);
   }
 
-  @Query(() => Season, { name: 'currentSeason', nullable: true })
-  findCurrent() {
-    return this.seasonsService.findCurrent();
+  @Query(() => Season, { name: 'season', nullable: true })
+  findOne(@Args('params', { nullable: true }) params: QueryParamsDto) {
+    return this.seasonsService.findOne(params);
   }
 
   @Mutation(() => Season)

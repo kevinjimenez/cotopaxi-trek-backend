@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { QueryParamsDto } from 'src/common/dtos/query-params.dto';
 import { DatabasesService } from 'src/databases/databases.service';
 import { Prisma } from 'src/databases/generated/prisma/client';
 import { PrismaTransaction } from 'src/databases/prisma.types';
@@ -7,12 +8,12 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class SeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAllWithMountains(isCurrent?: boolean, tx?: PrismaTransaction) {
+  findAllWithMountains({ status }: QueryParamsDto = {}, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.season.findMany({
       where: {
-        ...(isCurrent !== undefined && { isCurrent }),
+        ...(status !== undefined && { isCurrent: status }),
       },
       include: {
         seasonMountains: {
@@ -24,11 +25,13 @@ export class SeasonsRepository {
     });
   }
 
-  findCurrent(tx?: PrismaTransaction) {
+  findOne({ status }: QueryParamsDto = {}, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.season.findFirst({
-      where: { isCurrent: true },
+      where: {
+        ...(status !== undefined && { isCurrent: status }),
+      },
       include: {
         seasonMountains: {
           include: {

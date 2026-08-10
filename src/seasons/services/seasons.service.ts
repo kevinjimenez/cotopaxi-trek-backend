@@ -30,14 +30,11 @@ export class SeasonsService {
     });
   }
 
-  findAllWithMountains(
-    { status }: QueryParamsDto = {},
-    tx?: PrismaTransaction,
-  ) {
-    return this.seasonsRepository.findAllWithMountains(status, tx);
+  findAllWithMountains(params: QueryParamsDto, tx?: PrismaTransaction) {
+    return this.seasonsRepository.findAllWithMountains(params, tx);
   }
 
-  findCurrent(tx?: PrismaTransaction) {
-    return this.seasonsRepository.findCurrent(tx);
+  findOne(params: QueryParamsDto, tx?: PrismaTransaction) {
+    return this.seasonsRepository.findOne(params, tx);
   }
 }

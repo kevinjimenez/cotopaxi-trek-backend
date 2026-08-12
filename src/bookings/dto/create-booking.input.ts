@@ -10,7 +10,7 @@ import {
 
 @InputType()
 export class CreateBookingInput {
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   userId?: string;

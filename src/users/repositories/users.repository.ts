@@ -35,6 +35,49 @@ export class UsersRepository {
 
     return database.user.findMany({
       include: {
+        bookings: {
+          include: {
+            seasonMountain: {
+              include: {
+                season: true,
+                mountain: true,
+              },
+            },
+          },
+        },
+        userSeasons: {
+          include: {
+            season: {
+              include: {
+                seasonMountains: {
+                  include: {
+                    mountain: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  findByIdWithSeasons(id: string, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.user.findUniqueOrThrow({
+      where: { id },
+      include: {
+        bookings: {
+          include: {
+            seasonMountain: {
+              include: {
+                season: true,
+                mountain: true,
+              },
+            },
+          },
+        },
         userSeasons: {
           include: {
             season: {

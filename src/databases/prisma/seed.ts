@@ -32,6 +32,7 @@ async function main() {
     where: { slug: 'cotopaxi-trek' },
     update: {},
     create: {
+      id: '00000000-0000-0000-0000-000000000001',
       name: 'Cotopaxi Trek',
       slug: 'cotopaxi-trek',
       whatsapp: '+593999999999',
@@ -459,6 +460,7 @@ async function main() {
     where: { slug: 'chimbo-tours' },
     update: {},
     create: {
+      id: '00000000-0000-0000-0000-000000000002',
       name: 'Chimbo Tours',
       slug: 'chimbo-tours',
       whatsapp: '+593987654321',
@@ -470,6 +472,7 @@ async function main() {
     where: { slug: 'andes-xtreme' },
     update: {},
     create: {
+      id: '00000000-0000-0000-0000-000000000003',
       name: 'Andes Xtreme',
       slug: 'andes-xtreme',
       whatsapp: '+593976543210',
@@ -481,6 +484,7 @@ async function main() {
     where: { slug: 'volcan-trek' },
     update: {},
     create: {
+      id: '00000000-0000-0000-0000-000000000004',
       name: 'Volcán Trek',
       slug: 'volcan-trek',
       whatsapp: '+593965432109',

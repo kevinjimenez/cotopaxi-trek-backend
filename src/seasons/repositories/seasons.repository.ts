@@ -8,7 +8,10 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class SeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findAllWithMountains({ status }: QueryParamsDto = {}, tx?: PrismaTransaction) {
+  findAllWithMountains(
+    { status }: QueryParamsDto = {},
+    tx?: PrismaTransaction,
+  ) {
     const database = tx ?? this.databasesService;
 
     return database.season.findMany({
@@ -32,6 +35,21 @@ export class SeasonsRepository {
       where: {
         ...(status !== undefined && { isCurrent: status }),
       },
+      include: {
+        seasonMountains: {
+          include: {
+            mountain: true,
+          },
+        },
+      },
+    });
+  }
+
+  findByIdWithMountains(id: number, tx?: PrismaTransaction) {
+    const database = tx ?? this.databasesService;
+
+    return database.season.findUniqueOrThrow({
+      where: { id },
       include: {
         seasonMountains: {
           include: {

@@ -24,9 +24,9 @@ export class SeasonsService {
         ...mountain,
       }));
 
-      await this.seasonMountainsService.createMany(mountainsToCreate);
+      await this.seasonMountainsService.createMany(mountainsToCreate, tx);
 
-      return createdSeason;
+      return this.seasonsRepository.findByIdWithMountains(createdSeason.id, tx);
     });
   }
 

@@ -26,32 +26,35 @@ export class UsersService {
   }
 
   create(payload: CreateUserInput) {
-    const { seasonId, bookings, password, ...user } = payload;
-
     return this.databasesService.$transaction(async (tx) => {
-      const createdUser = await this.usersRepository.create(user, tx);
-
-      const credentialToCreate = {
-        userId: createdUser.id,
-        password: password,
-      };
-      await this.userCredentialsService.create(credentialToCreate, tx);
-
-      const seasonToCreate = {
-        userId: createdUser.id,
-        seasonId,
-      };
-      await this.userSeasonsService.create(seasonToCreate, tx);
-
-      const bookingsToCreate = bookings.map((booking) => ({
-        ...booking,
-        userId: createdUser.id,
-      }));
-
-      await this.bookingsService.createMany(bookingsToCreate, tx);
-
-      // return this.usersRepository.findByIdWithSeasons(createdUser.id, tx);
-      return createdUser;
+      return await this.enrollment(payload, tx);
     });
+  }
+
+  private async enrollment(payload: CreateUserInput, tx: PrismaTransaction) {
+    const { seasonId, bookings, password, ...user } = payload;
+    const createdUser = await this.usersRepository.create(user, tx);
+
+    const credentialToCreate = {
+      userId: createdUser.id,
+      password: password,
+    };
+    await this.userCredentialsService.create(credentialToCreate, tx);
+
+    const seasonToCreate = {
+      userId: createdUser.id,
+      seasonId,
+    };
+    await this.userSeasonsService.create(seasonToCreate, tx);
+
+    const bookingsToCreate = bookings.map((booking) => ({
+      ...booking,
+      userId: createdUser.id,
+    }));
+
+    await this.bookingsService.createMany(bookingsToCreate, tx);
+
+    // return this.usersRepository.findByIdWithSeasons(createdUser.id, tx);
+    return createdUser;
   }
 }

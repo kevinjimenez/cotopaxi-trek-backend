@@ -1,6 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { QueryParamsDto } from 'src/common/dtos/query-params.dto';
 import { CreateSeasonInput } from '../dto/create-season.input';
+import { SeasonParamsDto } from '../dto/season-params.dto';
 import { Season } from '../models/season.model';
 import { SeasonsService } from '../services/seasons.service';
 
@@ -16,8 +17,8 @@ export class SeasonsResolver {
   }
 
   @Query(() => Season, { name: 'season', nullable: true })
-  findOne(@Args('params', { nullable: true }) params: QueryParamsDto) {
-    return this.seasonsService.findOne(params);
+  findOneById(@Args('params', { nullable: true }) params: SeasonParamsDto) {
+    return this.seasonsService.findOneById(params);
   }
 
   @Mutation(() => Season)

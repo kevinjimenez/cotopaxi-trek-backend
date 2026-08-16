@@ -3,6 +3,7 @@ import { QueryParamsDto } from 'src/common/dtos/query-params.dto';
 import { DatabasesService } from 'src/databases/databases.service';
 import { Prisma } from 'src/databases/generated/prisma/client';
 import { PrismaTransaction } from 'src/databases/prisma.types';
+import { SeasonParamsDto } from '../dto/season-params.dto';
 
 @Injectable()
 export class SeasonsRepository {
@@ -28,11 +29,12 @@ export class SeasonsRepository {
     });
   }
 
-  findOne({ status }: QueryParamsDto = {}, tx?: PrismaTransaction) {
+  findOneById({ id, status }: SeasonParamsDto = {}, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.season.findFirst({
       where: {
+        ...(id !== undefined && { id }),
         ...(status !== undefined && { isCurrent: status }),
       },
       include: {

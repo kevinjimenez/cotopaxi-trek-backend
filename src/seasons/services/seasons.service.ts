@@ -3,6 +3,7 @@ import { QueryParamsDto } from 'src/common/dtos/query-params.dto';
 import { DatabasesService } from 'src/databases/databases.service';
 import { PrismaTransaction } from 'src/databases/prisma.types';
 import { CreateSeasonInput } from '../dto/create-season.input';
+import { SeasonParamsDto } from '../dto/season-params.dto';
 import { SeasonsRepository } from '../repositories/seasons.repository';
 import { SeasonMountainsService } from './season-mountains.service';
 
@@ -34,7 +35,7 @@ export class SeasonsService {
     return this.seasonsRepository.findAllWithMountains(params, tx);
   }
 
-  findOne(params: QueryParamsDto, tx?: PrismaTransaction) {
-    return this.seasonsRepository.findOne(params, tx);
+  findOneById(params: SeasonParamsDto, tx?: PrismaTransaction) {
+    return this.seasonsRepository.findOneById(params, tx);
   }
 }

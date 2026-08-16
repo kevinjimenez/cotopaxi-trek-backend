@@ -30,7 +30,7 @@ export class SeasonsRepository {
   findOneById({ id, status }: SeasonParamsDto = {}, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
-    return database.season.findFirst({
+    return database.season.findFirstOrThrow({
       where: {
         ...(id !== undefined && { id }),
         ...(status !== undefined && { isCurrent: status }),

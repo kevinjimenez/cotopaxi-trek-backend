@@ -9,13 +9,13 @@ export class UserSeasonsResolver {
 
   @Mutation(() => UserSeason)
   assignUserSeason(
-    @Args('ssignUserSeasonInput') assignUserSeasonInput: AssignUserSeasonInput,
+    @Args('assignUserSeasonInput') assignUserSeasonInput: AssignUserSeasonInput,
   ) {
-    return this.userSeasonsService.asisgn(assignUserSeasonInput);
+    return this.userSeasonsService.assign(assignUserSeasonInput);
   }
 
   @Query(() => UserSeason, { name: 'userSeasons' })
-  findbyUserIdWithSeason(@Args('userId') userId: string) {
-    return this.userSeasonsService.findbyUserIdWithSeason(userId);
+  findByUserIdWithSeason(@Args('userId') userId: string) {
+    return this.userSeasonsService.findByUserIdWithSeason(userId);
   }
 }

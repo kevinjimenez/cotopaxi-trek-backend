@@ -7,7 +7,7 @@ import { PrismaTransaction } from 'src/databases/prisma.types';
 export class UserSeasonsRepository {
   constructor(private readonly databasesService: DatabasesService) {}
 
-  findbyUserIdWithSeason(userId: string, tx?: PrismaTransaction) {
+  findByUserIdWithSeason(userId: string, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
     return database.userSeason.findFirst({

@@ -17,17 +17,7 @@ export class SeasonsService {
 
   create(payload: CreateSeasonInput) {
     return this.databasesService.$transaction(async (tx) => {
-      const { mountains, ...season } = payload;
-      const createdSeason = await this.seasonsRepository.create(season, tx);
-
-      const mountainsToCreate = mountains.map((mountain) => ({
-        seasonId: createdSeason.id,
-        ...mountain,
-      }));
-
-      await this.seasonMountainsService.createMany(mountainsToCreate, tx);
-
-      return this.seasonsRepository.findByIdWithMountains(createdSeason.id, tx);
+      return this.createWithMountain(payload, tx);
     });
   }
 
@@ -37,5 +27,24 @@ export class SeasonsService {
 
   findOneById(params: SeasonParamsDto, tx?: PrismaTransaction) {
     return this.seasonsRepository.findOneById(params, tx);
+  }
+
+  private async createWithMountain(
+    payload: CreateSeasonInput,
+    tx: PrismaTransaction,
+  ) {
+    const { mountains, ...season } = payload;
+    const createdSeason = await this.seasonsRepository.create(season, tx);
+
+    const mountainsToCreate = mountains.map((mountain) => ({
+      seasonId: createdSeason.id,
+      ...mountain,
+    }));
+
+    await this.seasonMountainsService.createMany(mountainsToCreate, tx);
+
+    // TODO: revisar si aun deberia ir si no comnetar o quitar
+    // return this.seasonsRepository.findByIdWithMountains(createdSeason.id, tx);
+    return createdSeason;
   }
 }

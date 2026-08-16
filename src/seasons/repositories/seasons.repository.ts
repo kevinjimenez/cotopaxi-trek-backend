@@ -16,9 +16,7 @@ export class SeasonsRepository {
     const database = tx ?? this.databasesService;
 
     return database.season.findMany({
-      where: {
-        ...(status !== undefined && { isCurrent: status }),
-      },
+      where: { ...(status !== undefined && { isCurrent: status }) },
       include: {
         seasonMountains: {
           include: {
@@ -47,20 +45,20 @@ export class SeasonsRepository {
     });
   }
 
-  findByIdWithMountains(id: number, tx?: PrismaTransaction) {
-    const database = tx ?? this.databasesService;
+  // findByIdWithMountains(id: number, tx?: PrismaTransaction) {
+  //   const database = tx ?? this.databasesService;
 
-    return database.season.findUniqueOrThrow({
-      where: { id },
-      include: {
-        seasonMountains: {
-          include: {
-            mountain: true,
-          },
-        },
-      },
-    });
-  }
+  //   return database.season.findUniqueOrThrow({
+  //     where: { id },
+  //     include: {
+  //       seasonMountains: {
+  //         include: {
+  //           mountain: true,
+  //         },
+  //       },
+  //     },
+  //   });
+  // }
 
   create(payload: Prisma.SeasonUncheckedCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;

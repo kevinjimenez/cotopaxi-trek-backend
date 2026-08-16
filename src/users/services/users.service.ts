@@ -50,7 +50,8 @@ export class UsersService {
 
       await this.bookingsService.createMany(bookingsToCreate, tx);
 
-      return this.usersRepository.findByIdWithSeasons(createdUser.id, tx);
+      // return this.usersRepository.findByIdWithSeasons(createdUser.id, tx);
+      return createdUser;
     });
   }
 }

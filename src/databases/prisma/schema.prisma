@@ -116,6 +116,7 @@ model Mountain {
   name                 String   @db.VarChar(100)
   altitudeMeters       Float    @map("altitude_meters") @db.DoublePrecision
   location             String   @db.VarChar(150)
+  reference            String?   @db.VarChar(150)
   latitude             Float?   @db.DoublePrecision
   longitude            Float?   @db.DoublePrecision
   generalDescription   String?  @map("general_description") @db.Text

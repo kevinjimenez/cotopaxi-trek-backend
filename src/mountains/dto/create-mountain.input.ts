@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
 } from 'class-validator';
 
 @InputType()
@@ -17,6 +18,7 @@ export class CreateMountainInput {
 
   @Field()
   @IsString()
+  @Length(2, 100)
   name: string;
 
   @Field(() => Float)
@@ -26,7 +28,14 @@ export class CreateMountainInput {
 
   @Field()
   @IsString()
+  @Length(2, 150)
   location: string;
+
+  @Field()
+  @IsOptional()
+  @IsString()
+  @Length(0, 150)
+  reference?: string;
 
   @Field(() => Float, { nullable: true })
   @IsOptional()
@@ -56,5 +65,6 @@ export class CreateMountainInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @Length(0, 300)
   imageUrl?: string;
 }

@@ -18,11 +18,11 @@ export class UserSeasonsService {
     return this.userSeasonsRepository.create(payload, tx);
   }
 
-  findbyUserIdWithSeason(userId: string, tx?: PrismaTransaction) {
-    return this.userSeasonsRepository.findbyUserIdWithSeason(userId, tx);
+  findByUserIdWithSeason(userId: string, tx?: PrismaTransaction) {
+    return this.userSeasonsRepository.findByUserIdWithSeason(userId, tx);
   }
 
-  asisgn(payload: AssignUserSeasonInput) {
+  assign(payload: AssignUserSeasonInput) {
     const { bookings, ...seasonToAssign } = payload;
     const { userId } = seasonToAssign;
 

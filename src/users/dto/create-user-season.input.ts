@@ -21,5 +21,5 @@ export class CreateUserSeasonInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
-  status?: boolean;
+  enrolled?: boolean;
 }

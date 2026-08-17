@@ -15,7 +15,7 @@ export class UserSeason extends BaseModel {
   seasonId?: number;
 
   @Field()
-  status: boolean;
+  enrolled: boolean;
 
   @Field(() => Date)
   enrolledAt: Date;

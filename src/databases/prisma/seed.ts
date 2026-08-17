@@ -382,7 +382,7 @@ async function main() {
   await prisma.userSeason.upsert({
     where: { userId_seasonId: { userId: luis.id, seasonId: seasonBaja.id } },
     update: {},
-    create: { userId: luis.id, seasonId: seasonBaja.id, status: false },
+    create: { userId: luis.id, seasonId: seasonBaja.id, enrolled: false },
   });
 
   const carlos = await prisma.user.upsert({
@@ -417,13 +417,13 @@ async function main() {
   await prisma.userSeason.upsert({
     where: { userId_seasonId: { userId: carlos.id, seasonId: seasonBaja.id } },
     update: {},
-    create: { userId: carlos.id, seasonId: seasonBaja.id, status: false },
+    create: { userId: carlos.id, seasonId: seasonBaja.id, enrolled: false },
   });
 
   await prisma.userSeason.upsert({
     where: { userId_seasonId: { userId: carlos.id, seasonId: season2025.id } },
     update: {},
-    create: { userId: carlos.id, seasonId: season2025.id, status: false },
+    create: { userId: carlos.id, seasonId: season2025.id, enrolled: false },
   });
 
   await prisma.booking.upsert({

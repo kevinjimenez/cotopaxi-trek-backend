@@ -14,9 +14,6 @@ export class UsersRepository {
       where: {
         OR: [
           {
-            id: identifier,
-          },
-          {
             username: identifier,
           },
           {

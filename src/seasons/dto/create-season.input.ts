@@ -7,6 +7,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Length,
   ValidateNested,
 } from 'class-validator';
 import { CreateSeasonMountainInput } from './create-season-mountain.input';
@@ -19,6 +20,7 @@ export class CreateSeasonInput {
 
   @Field()
   @IsString()
+  @Length(2, 100)
   name: string;
 
   @Field(() => Int)

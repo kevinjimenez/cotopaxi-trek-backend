@@ -43,8 +43,6 @@ export class SeasonsService {
 
     await this.seasonMountainsService.createMany(mountainsToCreate, tx);
 
-    // TODO: revisar si aun deberia ir si no comnetar o quitar
-    // return this.seasonsRepository.findByIdWithMountains(createdSeason.id, tx);
     return createdSeason;
   }
 }

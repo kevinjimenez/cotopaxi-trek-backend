@@ -45,21 +45,6 @@ export class SeasonsRepository {
     });
   }
 
-  // findByIdWithMountains(id: number, tx?: PrismaTransaction) {
-  //   const database = tx ?? this.databasesService;
-
-  //   return database.season.findUniqueOrThrow({
-  //     where: { id },
-  //     include: {
-  //       seasonMountains: {
-  //         include: {
-  //           mountain: true,
-  //         },
-  //       },
-  //     },
-  //   });
-  // }
-
   create(payload: Prisma.SeasonUncheckedCreateInput, tx?: PrismaTransaction) {
     const database = tx ?? this.databasesService;
 
